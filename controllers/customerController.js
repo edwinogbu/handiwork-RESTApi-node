@@ -1,24 +1,60 @@
-const customerService = require('./../services/customerService');
+const customerService = require('../services/customerService');
+const fs = require('fs');
+
+
+// async function createCustomer(req, res) {
+//     try {
+//         const { firstName, lastName, email, password, phone, address } = req.body;
+//         const imagePath = req.file.path; // Assuming you're storing the image path in req.file.path
+//         const newCustomer = await customerService.createCustomer({ firstName, lastName, email, password, phone, address, imagePath });
+//         res.status(201).json({ success: true, customer: newCustomer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+
+// async function createCustomer(req, res) {
+//     try {
+//         const { firstName, lastName, email, password, phone, address } = req.body;
+//         const newCustomer = await customerService.createCustomer({ firstName, lastName, email, password, phone, address });
+//         res.status(201).json({ success: true, customer: newCustomer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+// async function createCustomerWithImage(req, res) {
+//     try {
+//         const { firstName, lastName, email, password, phone, address } = req.body;
+        
+//         // Check if a file is uploaded
+//         if (!req.file) {
+//             return res.status(400).json({ success: false, error: 'No image uploaded' });
+//         }
+
+//         const imagePath = req.file.path; // Assuming you're storing the image path in req.file.path
+//         const newCustomer = await customerService.createCustomerWithImage({ firstName, lastName, email, password, phone, address, imagePath });
+//         res.status(201).json({ success: true, customer: newCustomer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+
 
 async function createCustomer(req, res) {
     try {
-        const { firstName, lastName, email, password, phone, address } = req.body;
-        const { filename } = req.file; // Extract filename from uploaded file
-
-        const newCustomerData = {
-            firstName,
-            lastName,
-            email,
-            password,
-            phone,
-            address,
-            image: filename, // Add filename to customer data
-        };
-
-        // Create customer
-        const newCustomer = await customerService.createCustomer(newCustomerData);
+        const { firstName, lastName, email, password, phone, state, city, street } = req.body;
+        const imagePath = req.file ? req.file.path : null; // Check if an image file is uploaded
+        
+        // Call the service layer function to create the customer with or without an image path
+        const newCustomer = await customerService.createCustomerWithImage({ firstName, lastName, email, password, phone, state, city, street, imagePath });
+        
+        // Return success response with the newly created customer data
         res.status(201).json({ success: true, customer: newCustomer });
     } catch (error) {
+        // Return error response if any error occurs during the process
         res.status(500).json({ success: false, error: error.message });
     }
 }
@@ -47,16 +83,69 @@ async function getAllCustomers(req, res) {
     }
 }
 
-async function updateCustomer(req, res) {
+// async function updateCustomer(req, res) {
+//     try {
+//         const customerId = req.params.id;
+//         const updates = req.body;
+//         const updatedCustomer = await customerService.updateCustomer(customerId, updates);
+//         res.status(200).json({ success: true, customer: updatedCustomer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+// async function updateCustomerWithImage(req, res) {
+//     try {
+//         const customerId = req.params.id;
+//         const { firstName, lastName, email, password, phone, address } = req.body;
+        
+//         // Check if a file is uploaded
+//         if (!req.file) {
+//             return res.status(400).json({ success: false, error: 'No image uploaded' });
+//         }
+
+//         const imagePath = req.file.path; // Assuming you're storing the image path in req.file.path
+        
+//         // Update customer information including the image path
+//         const updatedCustomer = await customerService.updateCustomerWithImage(customerId, { firstName, lastName, email, password, phone, address, imagePath });
+
+//         // Check if customer was found and updated
+//         if (!updatedCustomer) {
+//             return res.status(404).json({ success: false, error: 'Customer not found or could not be updated' });
+//         }
+
+//         res.status(200).json({ success: true, customer: updatedCustomer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+
+
+
+async function updateCustomerWithImage(req, res) {
     try {
         const customerId = req.params.id;
-        const updates = req.body;
-        const updatedCustomer = await customerService.updateCustomer(customerId, updates);
+        const { firstName, lastName, email, password, phone, address, state, city, street } = req.body;
+        
+        // Check if a file is uploaded
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'No image uploaded' });
+        }
+
+        const imagePath = req.file.path; // Assuming you're storing the image path in req.file.path
+        
+        // Update customer information including the image path
+        const updatedCustomer = await customerService.updateCustomerWithImage(customerId, { firstName, lastName, email, password, phone, address,  state, city, street, imagePath });
+
         res.status(200).json({ success: true, customer: updatedCustomer });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 }
+
+
+
 
 async function deleteCustomer(req, res) {
     try {
@@ -70,149 +159,20 @@ async function deleteCustomer(req, res) {
 
 module.exports = {
     createCustomer,
+    // createCustomerWithImage,
     getCustomerById,
     getAllCustomers,
-    updateCustomer,
+    updateCustomerWithImage,
+    // updateCustomer,
     deleteCustomer
 };
 
 
 
-// const customerService = require('./../services/customerService');
-
-// const customerController = {};
-
-
-// customerController.createCustomer = async (req, res, next) => {
-//     try {
-//         const { firstName, lastName, email, password, phone, address } = req.body;
-//         const customerData = { firstName, lastName, email, password, phone, address };
-        
-//         // Check if image file is uploaded
-//         if (req.file) {
-//             const createdCustomer = await customerService.createCustomerProfileWithImage(customerData, req.file);
-//             res.status(201).json(createdCustomer);
-//         } else {
-//             const createdCustomer = await customerService.createCustomerWithOutImage(customerData);
-//             res.status(201).json(createdCustomer);
-//         }
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// // customerController.getCustomerById = async (req, res, next) => {
-// //     try {
-// //         const { id } = req.params;
-// //         const customer = await customerService.getCustomerById(id);
-// //         res.status(200).json(customer);
-// //     } catch (error) {
-// //         next(error);
-// //     }
-// // };
-
-
-// // Controller function to handle creating a new customer without an image
-// customerController.createCustomerWithOutImage = async (req, res, next) => {
-//     try {
-//         const customerData = req.body;
-//         const newCustomer = await customerService.createCustomerWithOutImage(customerData);
-//         res.status(201).json(newCustomer);
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// // Controller function to handle creating a new customer profile with an image
-// customerController.createCustomerProfileWithImage = async (req, res, next) => {
-//     try {
-//         const customerData = req.body;
-//         const imageFile = req.file;
-//         const newCustomer = await customerService.createCustomerProfileWithImage(customerData, imageFile);
-//         res.status(201).json(newCustomer);
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// // Controller function to handle retrieving a customer by ID
-// customerController.getCustomerById = async (req, res, next) => {
-//     try {
-//         const customerId = req.params.id;
-//         const customer = await customerService.getCustomerById(customerId);
-//         if (!customer) {
-//             return res.status(404).json({ error: 'Customer not found' });
-//         }
-//         res.status(200).json(customer);
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// // Controller function to handle retrieving all customers
-// customerController.getAllCustomers = async (req, res, next) => {
-//     try {
-//         const customers = await customerService.getAllCustomers();
-//         res.status(200).json(customers);
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// // Controller function to handle updating a customer's information
-// customerController.updateCustomer = async (req, res, next) => {
-//     try {
-//         const customerId = req.params.id;
-//         const updates = req.body;
-//         const updatedCustomer = await customerService.updateCustomer(customerId, updates);
-//         res.status(200).json(updatedCustomer);
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// // Controller function to handle deleting a customer
-// customerController.deleteCustomer = async (req, res, next) => {
-//     try {
-//         const customerId = req.params.id;
-//         await customerService.deleteCustomer(customerId);
-//         res.status(204).end();
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// // Controller function to handle retrieving a customer profile by ID
-// customerController.getCustomerProfile = async (req, res, next) => {
-//     try {
-//         const customerId = req.params.id;
-//         const customerProfile = await customerService.getCustomerProfile(customerId);
-//         if (!customerProfile) {
-//             return res.status(404).json({ error: 'Customer profile not found' });
-//         }
-//         res.status(200).json(customerProfile);
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// // Controller function to handle retrieving profiles for all customers
-// customerController.getAllCustomersProfile = async (req, res, next) => {
-//     try {
-//         const customerProfiles = await customerService.getAllCustomersProfile();
-//         res.status(200).json(customerProfiles);
-//     } catch (error) {
-//         next(error);
-//     }
-// };
-
-// module.exports = customerController;
-
-
 
 // const customerService = require('../services/customerService');
 
-//  (req, res) {
+// async function createCustomer(req, res) {
 //     try {
 //         const { firstName, lastName, email, password, phone, address } = req.body;
 //         const newCustomer = await customerService.createCustomer({ firstName, lastName, email, password, phone, address });
@@ -274,4 +234,125 @@ module.exports = {
 //     deleteCustomer
 // };
 
+
+
+
+// const CustomerService = require('../services/customerService');
+
+// // Controller function to handle creating a new customer
+// exports.createCustomer = async (req, res, next) => {
+//     try {
+//         const { firstName, lastName, email, phone, address, userId } = req.body;
+//         const customerData = { firstName, lastName, email, phone, address, userId };
+//         const customer = await CustomerService.createCustomer(customerData);
+//         res.status(201).json({ success: true, data: customer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// };
+
+// // Controller function to handle getting a customer by ID
+// exports.getCustomerById = async (req, res, next) => {
+//     try {
+//         const { id } = req.params;
+//         const customer = await CustomerService.getCustomerById(id);
+//         if (!customer) {
+//             res.status(404).json({ success: false, message: 'Customer not found' });
+//             return;
+//         }
+//         res.status(200).json({ success: true, data: customer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// };
+
+// // Controller function to handle updating a customer
+// exports.updateCustomer = async (req, res, next) => {
+//     try {
+//         const { id } = req.params;
+//         const updates = req.body;
+//         const updatedCustomer = await CustomerService.updateCustomer(id, updates);
+//         res.status(200).json({ success: true, data: updatedCustomer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// };
+
+// // Controller function to handle deleting a customer
+// exports.deleteCustomer = async (req, res, next) => {
+//     try {
+//         const { id } = req.params;
+//         await CustomerService.deleteCustomer(id);
+//         res.status(200).json({ success: true, message: 'Customer deleted successfully' });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// };
+
+
+
+// const customerService = require('../services/customerService');
+
+// async function createCustomer(req, res) {
+//     try {
+//         const { firstName, lastName, email, password, phone, address } = req.body;
+//         const imagePath = req.file.path; // Assuming you're storing the image path in req.file.path
+//         const newCustomer = await customerService.createCustomer({ firstName, lastName, email, password, phone, address, imagePath });
+//         res.status(201).json({ success: true, customer: newCustomer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+// async function getCustomerById(req, res) {
+//     try {
+//         const customerId = req.params.id;
+//         const customer = await customerService.getCustomerById(customerId);
+//         if (!customer) {
+//             res.status(404).json({ success: false, error: 'Customer not found' });
+//             return;
+//         }
+//         res.status(200).json({ success: true, customer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+// async function getAllCustomers(req, res) {
+//     try {
+//         const customers = await customerService.getAllCustomers();
+//         res.status(200).json({ success: true, customers });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+// async function updateCustomer(req, res) {
+//     try {
+//         const customerId = req.params.id;
+//         const updates = req.body;
+//         const updatedCustomer = await customerService.updateCustomer(customerId, updates);
+//         res.status(200).json({ success: true, customer: updatedCustomer });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+// async function deleteCustomer(req, res) {
+//     try {
+//         const customerId = req.params.id;
+//         await customerService.deleteCustomer(customerId);
+//         res.status(200).json({ success: true, message: 'Customer deleted successfully' });
+//     } catch (error) {
+//         res.status(500).json({ success: false, error: error.message });
+//     }
+// }
+
+// module.exports = {
+//     createCustomer,
+//     getCustomerById,
+//     getAllCustomers,
+//     updateCustomer,
+//     deleteCustomer
+// };
 

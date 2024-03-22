@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
+// const authUserRoutes = require('./routes/authUserRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const skillProviderRoutes = require('./routes/skilledProviderRoutes');
 const mysql = require('mysql');
@@ -33,6 +34,7 @@ connection.connect((err) => {
 
 // Routes
 app.use('/api/auth/users', authRoutes);
+// app.use('/api/auth/user', authUserRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/skill-providers', skillProviderRoutes);
 
