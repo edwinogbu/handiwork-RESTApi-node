@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const userToken = require('./../middleware/userToken');
 const skillProviderController = require('../controllers/skillProviderController');
+const uploadMiddleware = require('../middleware/uploadMiddleware');
 
 // Route to create a new skill provider
-router.post('/create', skillProviderController.createSkillProvider);
+router.post('/create', uploadMiddleware, skillProviderController.createSkillProvider);
 
 // Route to create a new skill provider
-router.post('/createWithCoordinate', skillProviderController.createSkillProviderWithGoogle);
+// router.post('/createWithCoordinate', skillProviderController.createSkillProviderWithGoogle);
 
 // Route to get all skill providers
 router.get('/skillproviders', skillProviderController.getAllSkillProviders);
@@ -16,12 +17,12 @@ router.get('/skillproviders', skillProviderController.getAllSkillProviders);
 router.get('/view/:id', skillProviderController.getSkillProviderById);
 
 // Route to update a skill provider by ID
-router.put('/update/:id', skillProviderController.updateSkillProvider);
-router.put('/updateImage/:id', skillProviderController.updateSkillProviderProfileWithImage);
+// router.put('/update/:id', skillProviderController.updateSkillProvider);
+router.put('/updateSkillProvider/:id', uploadMiddleware, skillProviderController.updateSkillProviderProfileWithImage);
 
 // Route to delete a skill provider by ID
 router.delete('/delete/:id', skillProviderController.deleteSkillProvider);
-router.delete('/find-skillProvider/:id', skillProviderController.findNearestSkillProviders);
+// router.delete('/find-skillProvider/:id', skillProviderController.findNearestSkillProviders);
 
 module.exports = router;
 

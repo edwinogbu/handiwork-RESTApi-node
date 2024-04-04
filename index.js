@@ -1,10 +1,12 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+
 const authRoutes = require('./routes/authRoutes');
-// const authUserRoutes = require('./routes/authUserRoutes');
+const verifySkillProviderRoutes = require('./routes/verifySkillProviderRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const skillProviderRoutes = require('./routes/skilledProviderRoutes');
+
 const mysql = require('mysql');
 
 dotenv.config();
@@ -34,9 +36,9 @@ connection.connect((err) => {
 
 // Routes
 app.use('/api/auth/users', authRoutes);
-// app.use('/api/auth/user', authUserRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/skill-providers', skillProviderRoutes);
+app.use('/api/verify-providers', verifySkillProviderRoutes);
 
 
 // Default route
@@ -49,33 +51,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
-
-// const express = require('express');
-// const cors = require('cors');
-// const authRoutes = require('./routes/authRoutes');
-// // const userRoutes = require('./routes/userRoutes');
-// const customerRoutes = require('./routes/customerRoutes');
-// const skilledProviderRoutes = require('./routes/skilledProviderRoutes');
-
-// const app = express();
-
-// // Enable CORS
-// app.use(cors());
-
-// // Parse incoming JSON data
-// app.use(express.json());
-
-// // Define routes
-// app.use('/api/auth/users', authRoutes);
-// // app.use('/api/users', userRoutes);
-// app.use('/api/customers', customerRoutes);
-// app.use('/api/skill-providers', skilledProviderRoutes);
-
-// // Define port
-// const PORT = process.env.PORT || 3000;
-
-// // Start the server
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });

@@ -16,3 +16,4 @@ router.put('/update/:id', uploadMiddleware, customerController.updateCustomerWit
 router.delete('/delete/:id', customerController.deleteCustomer);
 
 module.exports = router;
+

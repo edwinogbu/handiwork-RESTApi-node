@@ -31,6 +31,10 @@ const createCustomersTableQuery = `
             email VARCHAR(255) NOT NULL UNIQUE,
             password VARCHAR(255) NOT NULL,
             phone VARCHAR(20),
+            secondPhone VARCHAR(20),
+            stateOfResidence VARCHAR(255) NOT NULL,
+            city VARCHAR(255) NOT NULL,
+            street VARCHAR(255) NOT NULL,
             address VARCHAR(255),
             imagePath VARCHAR(255),
             userId INT NOT NULL,
@@ -46,6 +50,7 @@ const createUsersTableQuery = `
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
         email VARCHAR(255) NOT NULL UNIQUE,
+        phone VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
         userType ENUM('Customer', 'Provider') NOT NULL,
@@ -81,141 +86,26 @@ const signToken = (id) => {
 // CRUD operations for Customers
 const customerService = {};
 
-// customerService.createCustomer = async (customerData) => {
-//     try {
-//         const { firstName, lastName, email, password, phone, address, imagePath } = customerData;
-
-//         // Hash the password
-//         const hashedPassword = await bcrypt.hash(password, 12);
-
-//         // Create new user
-//         const newUserQuery = 'INSERT INTO users (username, email, password, role, userType) VALUES (?, ?, ?, ?, ?)';
-//         const newUserResult = await query(newUserQuery, [email, email, hashedPassword, 'user', 'Customer']);
-
-//         // Check if user insertion was successful
-//         if (!newUserResult.insertId) {
-//             throw new Error('Failed to insert user');
-//         }
-
-//         // Generate JWT token
-//         const token = signToken(newUserResult.insertId);
-
-//         // Insert customer data into the customers table
-//         const insertQuery = `
-//             INSERT INTO customers (firstName, lastName, email, password, phone, address, userId, imagePath)
-//             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-//         `;
-//         const result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, address, newUserResult.insertId, imagePath]);
-
-//         // Check if customer insertion was successful
-//         if (!result.insertId) {
-//             throw new Error('Failed to insert customer');
-//         }
-
-//         // Return the newly created customer data along with the user token
-//         return { id: result.insertId, token, ...customerData };
-//     } catch (error) {
-//         throw error;
-//     }
-// };
-
-
-
-// customerService.createCustomer = async (customerData) => {
-//     try {
-//         const { firstName, lastName, email, password, phone, address } = customerData;
-
-//         // Hash the password
-//         const hashedPassword = await bcrypt.hash(password, 12);
-
-//         // Create new user
-//         const newUserQuery = 'INSERT INTO users (username, email, password, role, userType) VALUES (?, ?, ?, ?, ?)';
-//         const newUserResult = await query(newUserQuery, [email, email, hashedPassword, 'user', 'Customer']);
-
-//         // Check if user insertion was successful
-//         if (!newUserResult.insertId) {
-//             throw new Error('Failed to insert user');
-//         }
-
-//         // Generate JWT token
-//         const token = signToken(newUserResult.insertId);
-
-//         // Insert customer data into the customers table
-//         const insertQuery = `
-//             INSERT INTO customers (firstName, lastName, email, password, phone, address, userId)
-//             VALUES (?, ?, ?, ?, ?, ?, ?)
-//         `;
-//         const result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, address, newUserResult.insertId]);
-
-//         // Check if customer insertion was successful
-//         if (!result.insertId) {
-//             throw new Error('Failed to insert customer');
-//         }
-
-//         // Return the newly created customer data along with the user token
-//         return { id: result.insertId, token, ...customerData };
-//     } catch (error) {
-//         throw error;
-//     }
-// };
-
-
-
-// customerService.createCustomerWithImage = async (customerData) => {
-//     try {
-//         const { firstName, lastName, email, password, phone, state, city, street,  imagePath } = customerData;
-
-//         // Hash the password
-//         const hashedPassword = await bcrypt.hash(password, 12);
-
-//         // Construct full address
-//         const address = `${street}, ${city}, ${state}`; // Correct order for address components
-
-//         // Create new user
-//         const newUserQuery = 'INSERT INTO users (username, email, password, role, userType) VALUES (?, ?, ?, ?, ?)';
-//         const newUserResult = await query(newUserQuery, [email, email, hashedPassword, 'user', 'Customer']);
-
-//         // Check if user insertion was successful
-//         if (!newUserResult.insertId) {
-//             throw new Error('Failed to insert user');
-//         }
-
-//         // Generate JWT token
-//         const token = signToken(newUserResult.insertId);
-
-//         // Insert customer data into the customers table
-//         const insertQuery = `
-//             INSERT INTO customers (firstName, lastName, email, password, phone,state, city, street,  address, imagePath, userId)
-//             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-//         `;
-//         const result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone,state, city, street,  address, imagePath, newUserResult.insertId]);
-
-//         // Check if customer insertion was successful
-//         if (!result.insertId) {
-//             throw new Error('Failed to insert customer');
-//         }
-
-//         // Return the newly created customer data along with the user token
-//         return { id: result.insertId, token, ...customerData };
-//     } catch (error) {
-//         throw error;
-//     }
-// };
 
 
 customerService.createCustomer = async (customerData) => {
     try {
-        const { firstName, lastName, email, password, phone, state, city, street, imagePath } = customerData;
+        const { firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, imagePath } = customerData;
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 12);
 
         // Construct full address
-        const address = `${street}, ${city}, ${state}`; // Correct order for address components
+        const address = `${street}, ${city}, ${stateOfResidence}`; // Correct order for address components
+
+        const username = `${firstName}, ${lastName}`;
+        // const { latitude, longitude } = await geocodeAddress(address);
+
+     
 
         // Create new user
-        const newUserQuery = 'INSERT INTO users (username, email, password, role, userType) VALUES (?, ?, ?, ?, ?)';
-        const newUserResult = await query(newUserQuery, [email, email, hashedPassword, 'user', 'Customer']);
+        const newUserQuery = 'INSERT INTO users (username, email, phone, password, role, userType) VALUES (?, ?, ?, ?, ?, ?)';
+        const newUserResult = await query(newUserQuery, [username, email, phone, hashedPassword, 'user', 'Customer']);
 
         // Check if user insertion was successful
         if (!newUserResult.insertId) {
@@ -225,24 +115,12 @@ customerService.createCustomer = async (customerData) => {
         // Generate JWT token
         const token = signToken(newUserResult.insertId);
 
-        let insertQuery, result;
-
-        // Check if imagePath is provided
-        if (imagePath) {
-            // Insert customer data with image path
-            insertQuery = `
-                INSERT INTO customers (firstName, lastName, email, password, phone, state, city, street, address, imagePath, userId)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
-            result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, state, city, street, address, imagePath, newUserResult.insertId]);
-        } else {
-            // Insert customer data without image path
-            insertQuery = `
-                INSERT INTO customers (firstName, lastName, email, password, phone, state, city, street, address, userId)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
-            result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, state, city, street, address, newUserResult.insertId]);
-        }
+        // Insert customer data into the customers table
+        const insertQuery = `
+            INSERT INTO customers (firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, address, imagePath, userId)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, secondPhone, stateOfResidence, city, street, address, imagePath, newUserResult.insertId]);
 
         // Check if customer insertion was successful
         if (!result.insertId) {
@@ -250,13 +128,11 @@ customerService.createCustomer = async (customerData) => {
         }
 
         // Return the newly created customer data along with the user token
-        return { id: result.insertId, token, ...customerData };
+        return { id: result.insertId, token, ...customerData, address };
     } catch (error) {
         throw error;
     }
 };
-
-
 
 
 customerService.getCustomerById = async (id) => {
@@ -285,53 +161,6 @@ customerService.getAllCustomers = async () => {
     }
 };
 
-// customerService.updateCustomer = async (id, updates) => {
-//     try {
-//         const updateQuery = `
-//             UPDATE customers
-//             SET ?
-//             WHERE id = ?
-//         `;
-//         await query(updateQuery, [updates, id]);
-//         return { id, ...updates };
-//     } catch (error) {
-//         throw error;
-//     }
-// };
-
-
-// customerService.updateCustomerWithImage = async (customerId, customerData) => {
-//     try {
-//         const { firstName, lastName, email, password, phone, address, imagePath } = customerData;
-
-//         // Check if password is provided for update, if yes, hash it
-//         let hashedPassword;
-//         if (password) {
-//             hashedPassword = await bcrypt.hash(password, 12);
-//         }
-
-//         // Update user information if provided
-//         if (password) {
-//             const updateUserQuery = 'UPDATE users SET email = ?, password = ? WHERE id = ?';
-//             await query(updateUserQuery, [email, hashedPassword, customerId]);
-//         } else {
-//             const updateUserQuery = 'UPDATE users SET email = ? WHERE id = ?';
-//             await query(updateUserQuery, [email, customerId]);
-//         }
-
-//         // Update customer information including image path
-//         const updateCustomerQuery = `
-//             UPDATE customers 
-//             SET firstName = ?, lastName = ?, email = ?, phone = ?, address = ?, imagePath = ? 
-//             WHERE id = ?
-//         `;
-//         await query(updateCustomerQuery, [firstName, lastName, email, phone, address, imagePath, customerId]);
-
-//         return { message: "Customer updated successfully" };
-//     } catch (error) {
-//         throw error;
-//     }
-// };
 
 
 customerService.updateCustomerWithImage = async (customerId, customerData) => {
