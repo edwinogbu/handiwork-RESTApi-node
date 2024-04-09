@@ -198,32 +198,6 @@ verifySkillProviderService.updateSkillProviderDetails = async (id, skillProvider
 };
 
 
-// verifySkillProviderService.addSocialMedia = async (id, socialMediaData) => {
-//     try {
-//         // Retrieve existing social media data for the verify skill provider
-//         const existingProvider = await verifySkillProviderService.getVerifySkillProviderById(id);
-//         const existingSocialPlatform = existingProvider.socialPlatform || [];
-//         const existingSocialPlatformUrl = existingProvider.socialPlatformUrl || [];
-
-//         // Combine existing and new social media data
-//         const updatedSocialPlatform = [...new Set([...existingSocialPlatform, ...socialMediaData.socialPlatform])];
-//         const updatedSocialPlatformUrl = [...existingSocialPlatformUrl, ...socialMediaData.socialPlatformUrl];
-
-//         // Update verify skill provider data in the database
-//         const updateQuery = `
-//             UPDATE verify_skill_providers 
-//             SET socialPlatform=?, socialPlatformUrl=?
-//             WHERE id=?
-//         `;
-//         await query(updateQuery, [JSON.stringify(updatedSocialPlatform), JSON.stringify(updatedSocialPlatformUrl), id]);
-
-//         // Return updated social media data
-//         return { socialPlatform: updatedSocialPlatform, socialPlatformUrl: updatedSocialPlatformUrl };
-//     } catch (error) {
-//         throw error;
-//     }
-// };
-
 
 module.exports = verifySkillProviderService;
 

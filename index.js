@@ -35,7 +35,7 @@ connection.connect((err) => {
 });
 
 // Routes
-app.use('/api/auth/users', authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/skill-providers', skillProviderRoutes);
 app.use('/api/verify-providers', verifySkillProviderRoutes);

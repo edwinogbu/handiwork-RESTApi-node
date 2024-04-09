@@ -1,13 +1,78 @@
+// const customerService = require('./customerService');
+
+// const customerController = {
+//     createCustomer: async (req, res) => {
+//         try {
+//             const { fullName, email, password, phone, address } = req.body;
+//             const customerId = await customerService.createCustomer({ fullName, email, password, phone, address });
+//             res.status(201).json({ customerId });
+//         } catch (error) {
+//             console.error('Error creating customer:', error);
+//             res.status(500).json({ error: 'Internal Server Error' });
+//         }
+//     },
+
+//     getCustomerById: async (req, res) => {
+//         try {
+//             const customerId = parseInt(req.params.id);
+//             const customer = await customerService.getCustomerById(customerId);
+//             if (customer) {
+//                 res.json(customer);
+//             } else {
+//                 res.status(404).json({ error: 'Customer not found' });
+//             }
+//         } catch (error) {
+//             console.error('Error getting customer by ID:', error);
+//             res.status(500).json({ error: 'Internal Server Error' });
+//         }
+//     },
+
+//     updateCustomer: async (req, res) => {
+//         try {
+//             const customerId = parseInt(req.params.id);
+//             const { fullName, email, phone, address } = req.body;
+//             const success = await customerService.updateCustomer(customerId, { fullName, email, phone, address });
+//             if (success) {
+//                 res.json({ success: true });
+//             } else {
+//                 res.status(404).json({ error: 'Customer not found' });
+//             }
+//         } catch (error) {
+//             console.error('Error updating customer:', error);
+//             res.status(500).json({ error: 'Internal Server Error' });
+//         }
+//     },
+
+//     deleteCustomer: async (req, res) => {
+//         try {
+//             const customerId = parseInt(req.params.id);
+//             const success = await customerService.deleteCustomer(customerId);
+//             if (success) {
+//                 res.json({ success: true });
+//             } else {
+//                 res.status(404).json({ error: 'Customer not found' });
+//             }
+//         } catch (error) {
+//             console.error('Error deleting customer:', error);
+//             res.status(500).json({ error: 'Internal Server Error' });
+//         }
+//     }
+// };
+
+// module.exports = customerController;
+
+
+
 const customerService = require('../services/customerService');
 const fs = require('fs');
 
 async function createCustomer(req, res) {
     try {
-        const { firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street } = req.body;
-        const imagePath = req.file ? req.file.path : null; // Check if an image file is uploaded
+        const { fullName, email, password, phone, address  } = req.body;
+        // const imagePath = req.file ? req.file.path : null; // Check if an image file is uploaded
         
         // Call the service layer function to create the customer with or without an image path
-        const newCustomer = await customerService.createCustomer({ firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, imagePath });
+        const newCustomer = await customerService.createCustomer({ fullName, email, password, phone, address  });
         
         // Return success response with the newly created customer data
         res.status(201).json({ success: true, customer: newCustomer });
@@ -16,6 +81,7 @@ async function createCustomer(req, res) {
         res.status(500).json({ success: false, error: error.message });
     }
 }
+
 
 async function getCustomerById(req, res) {
     try {
@@ -43,17 +109,17 @@ async function getAllCustomers(req, res) {
 async function updateCustomerWithImage(req, res) {
     try {
         const customerId = req.params.id;
-        const { firstName, lastName, email, password, phone, address, stateOfResidence, city, street } = req.body;
+        const { fullName, email, password, phone, address  } = req.body;
         
         // Check if a file is uploaded
-        if (!req.file) {
-            return res.status(400).json({ success: false, error: 'No image uploaded' });
-        }
+        // if (!req.file) {
+        //     return res.status(400).json({ success: false, error: 'No image uploaded' });
+        // }
 
-        const imagePath = req.file.path; // Assuming you're storing the image path in req.file.path
+        // const imagePath = req.file.path; // Assuming you're storing the image path in req.file.path
         
         // Update customer information including the image path
-        const updatedCustomer = await customerService.updateCustomerWithImage(customerId, { firstName, lastName, email, password, phone, secondPhone, address,  stateOfResidence, city, street, imagePath });
+        const updatedCustomer = await customerService.updateCustomerWithImage(customerId, { fullName, email, password, phone, address  });
 
         res.status(200).json({ success: true, customer: updatedCustomer });
     } catch (error) {
@@ -71,12 +137,28 @@ async function deleteCustomer(req, res) {
     }
 }
 
+async function updateCustomer(req, res) {
+    try {
+        const customerId = req.params.id;
+        const { fullName, email, password, phone, address  } = req.body;
+        
+        // Update customer information
+        const updatedCustomer = await customerService.updateCustomer(customerId, { fullName, email, password, phone, address  });
+
+        res.status(200).json({ success: true, customer: updatedCustomer });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+
 module.exports = {
     createCustomer,
     getCustomerById,
     getAllCustomers,
     updateCustomerWithImage,
-    deleteCustomer
+    deleteCustomer,
+    updateCustomer
 };
 
 

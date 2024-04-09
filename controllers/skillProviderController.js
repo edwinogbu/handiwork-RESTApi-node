@@ -10,9 +10,9 @@ async function createSkillProvider(req, res) {
         const imagePath = req.file ? req.file.path : null;
 
         // If no image file is uploaded, return an error response
-        if (!imagePath) {
-            return res.status(400).json({ success: false, error: 'No image uploaded' });
-        }
+        // if (!imagePath) {
+        //     return res.status(400).json({ success: false, error: 'No image uploaded' });
+        // }
 
         // Call the service layer function to create the skill provider with or without an image path
         const newSkillProvider = await skillProviderService.createSkillProvider({ firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, serviceType, subCategory, openingHour, referralCode, imagePath });
@@ -52,21 +52,53 @@ async function getSkillProviderById(req, res) {
 async function updateSkillProviderProfileWithImage(req, res) {
     try {
         const skillProviderId = req.params.id;
-        const { stateOfResidence, city, street, imagePath } = req.body;
+        const { firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, serviceType, subCategory, openingHour, referralCode } = req.body;
 
+        // Check if an image file is uploaded
+        const imagePath = req.file ? req.file.path : null;
+        
         // Check if a file is uploaded
         if (!req.file) {
             return res.status(400).json({ success: false, error: 'No image uploaded' });
         }
 
         // Call the service layer function to update the skill provider profile with image
-        const updatedSkillProvider = await skillProviderService.updateSkillProviderProfileWithImage(skillProviderId, { stateOfResidence, city, street, imagePath });
+        const updatedSkillProvider = await skillProviderService.updateSkillProviderProfileWithImage(skillProviderId, {  firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, serviceType, subCategory, openingHour, referralCode, imagePath });
 
         res.status(200).json({ success: true, skillProvider: updatedSkillProvider });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 }
+
+
+async function updateSkillProviderProfileWithImage(req, res) {
+    
+    try {
+        const providerId = req.params.id;
+
+        const {  firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, serviceType, subCategory, openingHour, referralCode } = req.body;
+        // Check if a file is uploaded
+        
+        const imagePath = req.file.path; // Assuming you're storing the image path in req.file.path
+        
+        // if (!imagePath) {
+        //     return res.status(400).json({ success: false, error: 'No image uploaded' });
+        // }
+        // Update customer information including the image path
+        const updatedSkillProvider = await skillProviderService.updateSkillProviderProfileWithImage(providerId, {  firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, serviceType, subCategory, openingHour, referralCode, imagePath });
+
+        res.status(200).json({ success: true, skillProvider: updatedSkillProvider });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+
+};
+
+
+
+
+
 
 async function deleteSkillProvider(req, res) {
     try {

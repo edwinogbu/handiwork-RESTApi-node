@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const connection = mysql.createConnection({
+const connection = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -31,13 +31,49 @@ const signToken = (id) => {
 };
 
 // Create SkillProviders table if it doesn't exist
+// async function createSkillProvidersTable() {
+//     const createSkillProvidersTableQuery = `
+//         CREATE TABLE IF NOT EXISTS skill_providers (
+//             id INT AUTO_INCREMENT PRIMARY KEY,
+//             firstName VARCHAR(255) NOT NULL,
+//             lastName VARCHAR(255) NOT NULL,
+//             email VARCHAR(255) NOT NULL UNIQUE,
+//             password VARCHAR(255) NOT NULL,
+//             phone VARCHAR(20),
+//             secondPhone VARCHAR(20),
+//             stateOfResidence VARCHAR(255) NOT NULL,
+//             city VARCHAR(255) NOT NULL,
+//             street VARCHAR(255) NOT NULL,
+//             address VARCHAR(255),
+//             serviceType VARCHAR(255),
+//             subCategory VARCHAR(255),
+//             openingHour VARCHAR(255),
+//             referralCode VARCHAR(255),
+//             imagePath VARCHAR(255),
+//             userId INT NOT NULL,
+//             FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+//             latitude DECIMAL(10, 8),
+//             longitude DECIMAL(11, 8),
+//             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+//         );
+//     `;
+//     try {
+//         await query(createSkillProvidersTableQuery);
+//         console.log('SkillProviders table created successfully');
+//     } catch (error) {
+//         console.error('Error creating SkillProviders table:', error);
+//         throw error;
+//     }
+// }
+
 async function createSkillProvidersTable() {
     const createSkillProvidersTableQuery = `
         CREATE TABLE IF NOT EXISTS skill_providers (
             id INT AUTO_INCREMENT PRIMARY KEY,
             firstName VARCHAR(255) NOT NULL,
             lastName VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL UNIQUE,
+            email VARCHAR(255),
             password VARCHAR(255) NOT NULL,
             phone VARCHAR(20),
             secondPhone VARCHAR(20),
@@ -66,6 +102,7 @@ async function createSkillProvidersTable() {
         throw error;
     }
 }
+
 
 createSkillProvidersTable(); // Immediately create the table on module load
 

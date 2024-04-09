@@ -1,3 +1,132 @@
+// const mysql = require('mysql');
+// const bcrypt = require('bcrypt');
+// const jwt = require('jsonwebtoken');
+// const dotenv = require('dotenv');
+
+// dotenv.config();
+
+// // Create a pool of MySQL connections
+// const pool = mysql.createPool({
+//     connectionLimit: process.env.CONNECTION_LIMIT,
+//     host: process.env.DB_HOST,
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASSWORD,
+//     database: process.env.DB_NAME,
+// });
+
+// // Helper function to execute SQL queries
+// function query(sql, args) {
+//     return new Promise((resolve, reject) => {
+//         // Get a connection from the pool
+//         pool.getConnection((err, connection) => {
+//             if (err) {
+//                 return reject(err);
+//             }
+
+//             // Execute the query using the acquired connection
+//             connection.query(sql, args, (err, rows) => {
+//                 // Release the connection back to the pool
+//                 connection.release();
+
+//                 if (err) {
+//                     return reject(err);
+//                 }
+
+//                 resolve(rows);
+//             });
+//         });
+//     });
+// }
+
+// // Create Customers table if it doesn't exist
+// const createCustomersTableQuery = `
+//     CREATE TABLE IF NOT EXISTS customers (
+//         id INT AUTO_INCREMENT PRIMARY KEY,
+//         fullName VARCHAR(255) NOT NULL,
+//         email VARCHAR(255),
+//         password VARCHAR(255) NOT NULL,
+//         phone VARCHAR(20),
+//         address VARCHAR(255) NOT NULL,
+//         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+//     )
+// `;
+
+
+// // Create Users table if it doesn't exist
+// const createUsersTableQuery = `
+//     CREATE TABLE IF NOT EXISTS users (
+//         id INT AUTO_INCREMENT PRIMARY KEY,
+//         username VARCHAR(255) NOT NULL UNIQUE,
+//         email VARCHAR(255),
+//         phone VARCHAR(255) NOT NULL UNIQUE,
+//         password VARCHAR(255) NOT NULL,
+//         role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+//         userType ENUM('Customer', 'Provider') NOT NULL,
+//         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+//     )
+// `;
+
+// // Execute table creation queries
+// (async () => {
+//     try {
+//         await query(createUsersTableQuery);
+//         await query(createCustomersTableQuery);
+//         console.log('Tables created successfully');
+//     } catch (error) {
+//         console.error('Error creating tables:', error);
+//     }
+// })();
+
+
+// // Function to sign JWT token
+// const signToken = (id) => {
+//     return jwt.sign({ id }, process.env.JWT_SECRET, {
+//         expiresIn: process.env.JWT_EXPIRES_IN,
+//     });
+// };
+
+// // CRUD operations for Customers
+// const customerService = {
+//     // Create a new customer
+//     createCustomer: async (customerData) => {
+//         const { fullName, email, password, phone, address } = customerData;
+//           // Hash the password
+//           const hashedPassword = await bcrypt.hash(password, 12);
+
+//         const insertQuery = `INSERT INTO customers (fullName, email, password, phone, address) VALUES (?, ?, ?, ?, ?)`;
+//         const result = await query(insertQuery, [fullName, email, hashedPassword, phone, address]);
+//         return result.insertId;
+//     },
+
+//     // Get customer by ID
+//     getCustomerById: async (customerId) => {
+//         const selectQuery = `SELECT * FROM customers WHERE id = ?`;
+//         const customers = await query(selectQuery, [customerId]);
+//         return customers[0];
+//     },
+
+//     // Update customer information
+//     updateCustomer: async (customerId, customerData) => {
+//         const { fullName, email, phone, address } = customerData;
+//         const updateQuery = `UPDATE customers SET fullName = ?, email = ?, phone = ?, address = ? WHERE id = ?`;
+//         const result = await query(updateQuery, [fullName, email, phone, address, customerId]);
+//         return result.affectedRows > 0;
+//     },
+
+//     // Delete customer
+//     deleteCustomer: async (customerId) => {
+//         const deleteQuery = `DELETE FROM customers WHERE id = ?`;
+//         const result = await query(deleteQuery, [customerId]);
+//         return result.affectedRows > 0;
+//     },
+// };
+
+// module.exports = customerService;
+
+
+
 const mysql = require('mysql');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -5,7 +134,9 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const connection = mysql.createConnection({
+// Create a pool of MySQL connections
+const pool = mysql.createPool({
+    connectionLimit: process.env.CONNECTION_LIMIT,
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
@@ -15,41 +146,50 @@ const connection = mysql.createConnection({
 // Helper function to execute SQL queries
 function query(sql, args) {
     return new Promise((resolve, reject) => {
-        connection.query(sql, args, (err, rows) => {
-            if (err) return reject(err);
-            resolve(rows);
+        // Get a connection from the pool
+        pool.getConnection((err, connection) => {
+            if (err) {
+                return reject(err);
+            }
+
+            // Execute the query using the acquired connection
+            connection.query(sql, args, (err, rows) => {
+                // Release the connection back to the pool
+                connection.release();
+
+                if (err) {
+                    return reject(err);
+                }
+
+                resolve(rows);
+            });
         });
     });
 }
 
 // Create Customers table if it doesn't exist
 const createCustomersTableQuery = `
-        CREATE TABLE IF NOT EXISTS customers (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            firstName VARCHAR(255) NOT NULL,
-            lastName VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL UNIQUE,
-            password VARCHAR(255) NOT NULL,
-            phone VARCHAR(20),
-            secondPhone VARCHAR(20),
-            stateOfResidence VARCHAR(255) NOT NULL,
-            city VARCHAR(255) NOT NULL,
-            street VARCHAR(255) NOT NULL,
-            address VARCHAR(255),
-            imagePath VARCHAR(255),
-            userId INT NOT NULL,
-            FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
-            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+    CREATE TABLE IF NOT EXISTS customers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        fullName VARCHAR(255) NOT NULL,
+        email VARCHAR(255),
+        password VARCHAR(255) NOT NULL,
+        phone VARCHAR(20),
+        address VARCHAR(255) NOT NULL,
+        userId INT NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
 `;
+
 
 // Create Users table if it doesn't exist
 const createUsersTableQuery = `
     CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
-        email VARCHAR(255) NOT NULL UNIQUE,
+        email VARCHAR(255),
         phone VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
@@ -59,22 +199,16 @@ const createUsersTableQuery = `
     )
 `;
 
-// Create tables if they don't exist
-connection.query(createUsersTableQuery, (err, result) => {
-    if (err) {
-        console.error('Error creating users table:', err);
-        return;
+// Execute table creation queries
+(async () => {
+    try {
+        await query(createUsersTableQuery);
+        await query(createCustomersTableQuery);
+        console.log('Tables created successfully');
+    } catch (error) {
+        console.error('Error creating tables:', error);
     }
-    console.log('Users table created successfully');
-});
-
-connection.query(createCustomersTableQuery, (err, result) => {
-    if (err) {
-        console.error('Error creating customers table:', err);
-        return;
-    }
-    console.log('Customers table created successfully');
-});
+})();
 
 // Function to sign JWT token
 const signToken = (id) => {
@@ -86,26 +220,16 @@ const signToken = (id) => {
 // CRUD operations for Customers
 const customerService = {};
 
-
-
 customerService.createCustomer = async (customerData) => {
     try {
-        const { firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, imagePath } = customerData;
+        const { fullName, email, password, phone, address } = customerData;
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        // Construct full address
-        const address = `${street}, ${city}, ${stateOfResidence}`; // Correct order for address components
-
-        const username = `${firstName}, ${lastName}`;
-        // const { latitude, longitude } = await geocodeAddress(address);
-
-     
-
         // Create new user
         const newUserQuery = 'INSERT INTO users (username, email, phone, password, role, userType) VALUES (?, ?, ?, ?, ?, ?)';
-        const newUserResult = await query(newUserQuery, [username, email, phone, hashedPassword, 'user', 'Customer']);
+        const newUserResult = await query(newUserQuery, [fullName, email, phone, hashedPassword, 'user', 'Customer']);
 
         // Check if user insertion was successful
         if (!newUserResult.insertId) {
@@ -117,10 +241,10 @@ customerService.createCustomer = async (customerData) => {
 
         // Insert customer data into the customers table
         const insertQuery = `
-            INSERT INTO customers (firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, address, imagePath, userId)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO customers (fullName, email, password, phone, address, userId)
+            VALUES (?, ?, ?, ?, ?, ?)
         `;
-        const result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, secondPhone, stateOfResidence, city, street, address, imagePath, newUserResult.insertId]);
+        const result = await query(insertQuery, [fullName, email, hashedPassword, phone, address, newUserResult.insertId]);
 
         // Check if customer insertion was successful
         if (!result.insertId) {
@@ -134,6 +258,111 @@ customerService.createCustomer = async (customerData) => {
     }
 };
 
+
+
+customerService.updateCustomer = async (customerId, customerData) => {
+    try {
+        // Retrieve current customer data from the database
+        const currentCustomer = await customerService.getCustomerById(customerId);
+        if (!currentCustomer) {
+            throw new Error('Customer not found');
+        }
+
+        // Check for changes in customer data
+        const updatedCustomerData = { ...currentCustomer, ...customerData };
+        const hasChanges = Object.keys(updatedCustomerData).some(key => updatedCustomerData[key] !== currentCustomer[key]);
+
+        if (!hasChanges) {
+            // No changes made, return current customer data
+            return currentCustomer;
+        }
+
+        // Prepare update query based on changed fields
+        const updateFields = Object.entries(customerData).filter(([key, value]) => value !== currentCustomer[key]);
+        const updateValues = updateFields.map(([key, value]) => `${key}=?`).join(', ');
+        const updateParams = updateFields.map(([key, value]) => value);
+
+        // Add customerId to updateParams
+        updateParams.push(customerId);
+
+        // Update customer data in the database
+        const updateQuery = `
+            UPDATE customers 
+            SET ${updateValues}
+            WHERE id=?
+        `;
+        await query(updateQuery, updateParams);
+
+        // Return updated customer data
+        return { ...currentCustomer, ...customerData };
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+
+// customerService.createCustomer = async (customerData) => {
+//     try {
+//         const { firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, imagePath } = customerData;
+
+//         // Hash the password
+//         const hashedPassword = await bcrypt.hash(password, 12);
+
+//         // Construct full address
+//         const address = `${street}, ${city}, ${stateOfResidence}`; // Correct order for address components
+
+//         const username = `${firstName}, ${lastName}`;
+//         // const { latitude, longitude } = await geocodeAddress(address);
+
+     
+
+//         // Create new user
+//         const newUserQuery = 'INSERT INTO users (username, email, phone, password, role, userType) VALUES (?, ?, ?, ?, ?, ?)';
+//         const newUserResult = await query(newUserQuery, [username, email, phone, hashedPassword, 'user', 'Customer']);
+
+//         // Check if user insertion was successful
+//         if (!newUserResult.insertId) {
+//             throw new Error('Failed to insert user');
+//         }
+
+//         // Generate JWT token
+//         const token = signToken(newUserResult.insertId);
+
+//         // Insert customer data into the customers table
+//         const insertQuery = `
+//             INSERT INTO customers (firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, address, imagePath, userId)
+//             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//         `;
+//         const result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, secondPhone, stateOfResidence, city, street, address, imagePath, newUserResult.insertId]);
+
+//         // Check if customer insertion was successful
+//         if (!result.insertId) {
+//             throw new Error('Failed to insert customer');
+//         }
+
+//         // Return the newly created customer data along with the user token
+//         return { id: result.insertId, token, ...customerData, address };
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
+
+// customerService.createCustomer = async (customerData) => {
+//     try {
+//         const { fullName, email, password, phone, address } = customerData;
+//         const hashedPassword = await bcrypt.hash(password, 12);
+//         const insertQuery = 'INSERT INTO customers (fullName, email, password, phone, address) VALUES (?, ?, ?, ?, ?)';
+//         const result = await query(insertQuery, [fullName, email, hashedPassword, phone, address]);
+//         const userId = result.insertId;
+//         const token = signToken(userId);
+//         return { userId, token };
+//     } catch (error) {
+//         throw error;
+//     }
+// };
 
 customerService.getCustomerById = async (id) => {
     try {
