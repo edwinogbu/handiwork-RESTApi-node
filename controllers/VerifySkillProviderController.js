@@ -169,6 +169,19 @@ const updateSkillProviderDetails = async (req, res, next) => {
 //     }
 // };
 
+
+const checkVerificationStatus = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const verificationStatus = await verifySkillProviderService.checkVerificationStatus(id);
+        res.status(200).json(verificationStatus);
+    } catch (error) {
+        next(error);
+    }
+};
+
+
+
 module.exports = {
     createVerifySkillProvider,
     getVerifySkillProviderById,
@@ -177,5 +190,6 @@ module.exports = {
     deleteVerifySkillProvider,
     getVerifySkillProviderDetailsById,
     updateSkillProviderDetails,
-    // addSocialMedia
+    // addSocialMedia,
+    checkVerificationStatus
 };

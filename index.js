@@ -6,6 +6,8 @@ const authRoutes = require('./routes/authRoutes');
 const verifySkillProviderRoutes = require('./routes/verifySkillProviderRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const skillProviderRoutes = require('./routes/skilledProviderRoutes');
+const skillProviderTypesRoutes = require('./routes/skillProviderTypesRoutes');
+const nigerianStatesRoutes = require('./routes/nigerianStatesRoutes');
 
 const mysql = require('mysql');
 
@@ -39,6 +41,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/skill-providers', skillProviderRoutes);
 app.use('/api/verify-providers', verifySkillProviderRoutes);
+app.use('/api/skills', skillProviderTypesRoutes);
+app.use('/api/nigerian-states', nigerianStatesRoutes);
 
 
 // Default route

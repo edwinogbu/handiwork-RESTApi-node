@@ -1,93 +1,52 @@
+
+
 // const express = require('express');
 // const router = express.Router();
-// const authenticationController = require('../controllers/authController');
-// const db = require('../services/db');
-// const jsonwebtoken = require('jsonwebtoken');
-// const cookieParser = require('cookie-parser');
+// const authController = require('../controllers/authController');
+// const cache = require('memory-cache');
 
-// router.use(cookieParser());
+// // Route to authenticate user
+// router.post('/login', authController.authenticateUser, clearCacheForAllRoutes);
 
-// router.post('/register', authenticationController.registerUser);
-// router.post('/reset-password/request', authenticationController.requestPasswordReset);
-// router.post('/reset-password', authenticationController.resetPassword);
-// router.get('/verify-token', authenticationController.verifyToken);
-// router.get('/users', authenticationController.getAllUsers);
+// // Route to register new user
+// router.post('/register', authController.registerUser);
 
-// // router.post('/login', async (req, res, next) => {
-// //     try {
-// //         const email = req.body.email;
-// //         const password = req.body.password;
-// //         const user = await db.getUserByEmail(email);
-        
-// //         if (!user) {
-// //             return res.status(401).json({ message: "Invalid email or password" });
-// //         }
-        
-// //         const isValidPassword = compareSync(password, user.password);
-        
-// //         if (isValidPassword) {
-// //             user.password = undefined;
-// //             const jsontoken = jsonwebtoken.sign({ user: user }, process.env.SECRET_KEY, { expiresIn: '30m' });
-// //             res.cookie('token', jsontoken, { httpOnly: true, secure: true, sameSite: 'Strict', expires: new Date(Date.now() + 30 * 60 * 1000) });
-// //             res.json({ token: jsontoken });
-// //         } else {
-// //             return res.status(401).json({ message: "Invalid email or password" });
-// //         }
-// //     } catch (error) {
-// //         console.error(error);
-// //         res.status(500).json({ message: "Internal server error" });
-// //     }
-// // });
+// // Route to request password reset
+// router.post('/forgot-password', authController.requestPasswordReset);
 
+// // Route to reset password
+// router.post('/reset-password', authController.resetPassword);
 
-// router.post('/login', async (req, res, next) => {
-//     try {
-//         const identifier = req.body.identifier;
-//         const password = req.body.password;
-
-//         // Check if the provided identifier is an email or phone number
-//         const isEmail = identifier.includes('@');
-//         const column = isEmail ? 'email' : 'phone';
-
-//         // Fetch user data from the database based on the identifier
-//         const user = await db.getUserByColumn(column, identifier);
-
-//         // If user not found, return error
-//         if (!user) {
-//             return res.status(401).json({ message: "Invalid email or phone number" });
-//         }
-
-//         // Validate password
-//         const isValidPassword = compareSync(password, user.password);
-
-//         if (isValidPassword) {
-//             user.password = undefined;
-//             const jsontoken = jsonwebtoken.sign({ user: user }, process.env.SECRET_KEY, { expiresIn: '30m' });
-//             // res.cookie('token', jsontoken, { httpOnly: true, secure: true, sameSite: 'Strict', expires: new Date(Date.now() + 30 * 60 * 1000) });
-//             res.json({ token: jsontoken });
-//         } else {
-//             return res.status(401).json({ message: "Invalid password" });
-//         }
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: "Internal server error" });
-//     }
-// });
-
-
-// router.get('/test', (req, res) => {
-//     return res.json({ message: "Welcome to the Authentications API server" });
-// });
+// // Route to get all users
+// router.get('/users', cacheMiddleware(), authController.getAllUsers);
 
 // module.exports = router;
 
+// // Middleware to handle caching
+// function cacheMiddleware() {
+//     return (req, res, next) => {
+//         const key = req.originalUrl || req.url;
+//         const cachedData = cache.get(key);
+//         if (cachedData) {
+//             return res.status(200).json(cachedData);
+//         }
+//         // If not found in cache, proceed to the route handler
+//         next();
+//     };
+// }
+
+// // Middleware to clear cache for all routes
+// function clearCacheForAllRoutes(req, res, next) {
+//     cache.clear();
+//     next();
+// }
 
 
 
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-
+const cache = require('memory-cache');
 
 // Route to authenticate user
 router.post('/login', authController.authenticateUser);
@@ -101,9 +60,27 @@ router.post('/forgot-password', authController.requestPasswordReset);
 // Route to reset password
 router.post('/reset-password', authController.resetPassword);
 
-router.get('/users', authController.getAllUsers);
+// Route to get all users
+router.get('/users', cacheMiddleware(), authController.getAllUsers);
+
+// Route to verify OTP
+router.post('/verify-otp', authController.verifyOTP);
 
 module.exports = router;
+
+// Middleware to handle caching
+function cacheMiddleware() {
+    return (req, res, next) => {
+        const key = req.originalUrl || req.url;
+        const cachedData = cache.get(key);
+        if (cachedData) {
+            return res.status(200).json(cachedData);
+        }
+        // If not found in cache, proceed to the route handler
+        next();
+    };
+}
+
 
 
 

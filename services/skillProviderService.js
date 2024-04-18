@@ -86,7 +86,7 @@ async function createSkillProvidersTable() {
             openingHour VARCHAR(255),
             referralCode VARCHAR(255),
             imagePath VARCHAR(255),
-            userId INT NOT NULL,
+            userId INT,
             FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
             latitude DECIMAL(10, 8),
             longitude DECIMAL(11, 8),
@@ -108,35 +108,158 @@ createSkillProvidersTable(); // Immediately create the table on module load
 
 const skillProviderService = {};
 
+// skillProviderService.createSkillProvider = async (skillProviderData) => {
+//     try {
+//         const { firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, serviceType, subCategory, openingHour, referralCode, imagePath } = skillProviderData;
+
+//         // Hash the password
+//         const hashedPassword = await bcrypt.hash(password, 12);
+
+//         // Construct full address
+//         const address = `${street}, ${city}, ${stateOfResidence}`; // Correct order for address components
+
+//         // Create new user
+//         const newUserQuery = 'INSERT INTO users (firstName, lastName, email, phone,  password, role, userType) VALUES (?, ?, ?, ?, ?, ?, ?)';
+//         const newUserResult = await query(newUserQuery, [firstName, lastName, email, phone,  hashedPassword, 'user', 'SkillProvider']);
+
+//         // Generate JWT token
+//         const token = signToken(newUserResult.insertId);
+
+//         // Insert skillProvider data into the skill_providers table
+//         const insertQuery = `
+//             INSERT INTO skill_providers (firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, address, serviceType, subCategory, openingHour, referralCode, imagePath, userId)
+//             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//         `;
+//         const result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, secondPhone, stateOfResidence, city, street, address, serviceType, subCategory, openingHour, referralCode, imagePath, newUserResult.insertId]);
+
+//         return { id: result.insertId, token, ...skillProviderData, address, imagePath };
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
+
+skillProviderService.emailExists = async (email) => {
+    try {
+        const selectQuery = 'SELECT COUNT(*) AS count FROM users WHERE email = ?';
+        const result = await query(selectQuery, [email]);
+        const count = result[0].count;
+        return count > 0;
+    } catch (error) {
+        throw error;
+    }
+};
+
+skillProviderService.phoneExists = async (phone) => {
+    try {
+        const selectQuery = 'SELECT COUNT(*) AS count FROM users WHERE phone = ?';
+        const result = await query(selectQuery, [phone]);
+        const count = result[0].count;
+        return count > 0;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// skillProviderService.createSkillProvider = async (skillProviderData) => {
+//     try {
+//         const { firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, serviceType, subCategory, openingHour, referralCode, imagePath } = skillProviderData;
+
+//         // Check if email or phone already exists
+//         const emailExists = await skillProviderService.emailExists(email);
+//         if (emailExists) {
+//             throw new Error('Email already exists');
+//         }
+
+//         const phoneExists = await skillProviderService.phoneExists(phone);
+//         if (phoneExists) {
+//             throw new Error('Phone number already exists');
+//         }
+
+//         // Hash the password
+//         const hashedPassword = await bcrypt.hash(password, 12);
+
+//         // Construct full address
+//         const address = `${street}, ${city}, ${stateOfResidence}`;
+
+//         // Create new user
+//         const newUserQuery = 'INSERT INTO users (firstName, lastName, email, phone,  password, role, userType) VALUES (?, ?, ?, ?, ?, ?, ?)';
+//         const newUserResult = await query(newUserQuery, [firstName, lastName, email, phone,  hashedPassword, 'user', 'SkillProvider']);
+
+//         // Generate JWT token
+//         const token = jwt.sign({ id: newUserResult.insertId }, process.env.JWT_SECRET, {
+//             expiresIn: process.env.JWT_EXPIRES_IN,
+//         });
+
+//         // Insert skillProvider data into the skill_providers table
+//         const insertQuery = `
+//             INSERT INTO skill_providers (firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, address, serviceType, subCategory, openingHour, referralCode, imagePath, userId)
+//             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//         `;
+//         const result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, secondPhone, stateOfResidence, city, street, address, serviceType, subCategory, openingHour, referralCode, imagePath, newUserResult.insertId]);
+
+//         return { id: result.insertId, token, ...skillProviderData, address, imagePath };
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
 skillProviderService.createSkillProvider = async (skillProviderData) => {
     try {
         const { firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, serviceType, subCategory, openingHour, referralCode, imagePath } = skillProviderData;
+
+        // Check if email or phone already exists
+        const emailExists = await skillProviderService.emailExists(email);
+        if (emailExists) {
+            throw new Error('Email already exists');
+        }
+
+        const phoneExists = await skillProviderService.phoneExists(phone);
+        if (phoneExists) {
+            throw new Error('Phone number already exists');
+        }
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 12);
 
         // Construct full address
-        const address = `${street}, ${city}, ${stateOfResidence}`; // Correct order for address components
+        const address = `${street}, ${city}, ${stateOfResidence}`;
 
-        // Create new user
-        const newUserQuery = 'INSERT INTO users (username, email, phone,  password, role, userType) VALUES (?, ?, ?, ?, ?, ?)';
-        const newUserResult = await query(newUserQuery, [`${firstName} ${lastName}`, email, phone,  hashedPassword, 'user', 'SkillProvider']);
+        // Insert data into skill_providers table
+        const insertProviderQuery = `
+            INSERT INTO skill_providers (firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, address, serviceType, subCategory, openingHour, referralCode, imagePath)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const providerResult = await query(insertProviderQuery, [firstName, lastName, email, hashedPassword, phone, secondPhone, stateOfResidence, city, street, address, serviceType, subCategory, openingHour, referralCode, imagePath]);
+
+        // Retrieve the providerId
+        const providerId = providerResult.insertId;
+
+        // Insert data into users table with providerId
+        const insertUserQuery = `
+            INSERT INTO users (firstName, lastName, email, phone, password, role, userType, providerId)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const userResult = await query(insertUserQuery, [firstName, lastName, email, phone, hashedPassword, 'user', 'SkillProvider', providerId]);
+
+        // Check if user insertion was successful
+        if (!userResult.insertId) {
+            throw new Error('Failed to insert user');
+        }
 
         // Generate JWT token
-        const token = signToken(newUserResult.insertId);
+        const token = signToken(userResult.insertId);
 
-        // Insert skillProvider data into the skill_providers table
-        const insertQuery = `
-            INSERT INTO skill_providers (firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, address, serviceType, subCategory, openingHour, referralCode, imagePath, userId)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-        const result = await query(insertQuery, [firstName, lastName, email, hashedPassword, phone, secondPhone, stateOfResidence, city, street, address, serviceType, subCategory, openingHour, referralCode, imagePath, newUserResult.insertId]);
-
-        return { id: result.insertId, token, ...skillProviderData, address, imagePath };
+        // Return the newly created user data along with the token
+        return { id: userResult.insertId, token, ...skillProviderData, address };
+        
     } catch (error) {
         throw error;
     }
 };
+
 
 skillProviderService.getAllSkillProviders = async () => {
     try {

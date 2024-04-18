@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const verifySkillProviderController = require('../controllers/VerifySkillProviderController');
+const userToken = require('./../middleware/userToken');
+
 
 // Multer storage configuration
 const storage = multer.diskStorage({
@@ -52,11 +54,11 @@ const upload = multer({ storage: storage, fileFilter: fileFilter });
 const uploadMiddleware = upload.single('cacImage');
 
 // Routes for verified skill providers
-router.post('/create', uploadMiddleware, verifySkillProviderController.createVerifySkillProvider);
+router.post('/create',  uploadMiddleware, verifySkillProviderController.createVerifySkillProvider);
 router.get('/view/:id', verifySkillProviderController.getVerifySkillProviderById);
-router.get('/allVerifiedProviders/', verifySkillProviderController.getAllVerifySkillProviders);
-router.put('/update/:id', uploadMiddleware, verifySkillProviderController.updateVerifySkillProvider);
-router.delete('/delete/:id', verifySkillProviderController.deleteVerifySkillProvider);
+router.get('/allVerifiedProviders/',  verifySkillProviderController.getAllVerifySkillProviders);
+router.put('/update/:id',  uploadMiddleware, verifySkillProviderController.updateVerifySkillProvider);
+router.delete('/delete/:id',userToken, verifySkillProviderController.deleteVerifySkillProvider);
 
 
 // Route to get skill provider details by ID
@@ -64,6 +66,8 @@ router.get('/verify-skill-details/:id', verifySkillProviderController.getVerifyS
 // Route to update skill provider details
 router.put('/updateSkillAndVerify/:id', verifySkillProviderController.updateSkillProviderDetails);
 // router.put('/updateSocials/:id', verifySkillProviderController.addSocialMedia);
+
+router.get('/verify/:id', verifySkillProviderController.checkVerificationStatus);
 
 
 module.exports = router;

@@ -68,11 +68,11 @@ const fs = require('fs');
 
 async function createCustomer(req, res) {
     try {
-        const { fullName, email, password, phone, address  } = req.body;
+        const { firstName, lastName, email, password, phone, address  } = req.body;
         // const imagePath = req.file ? req.file.path : null; // Check if an image file is uploaded
         
         // Call the service layer function to create the customer with or without an image path
-        const newCustomer = await customerService.createCustomer({ fullName, email, password, phone, address  });
+        const newCustomer = await customerService.createCustomer({firstName, lastName, email, password, phone, address  });
         
         // Return success response with the newly created customer data
         res.status(201).json({ success: true, customer: newCustomer });

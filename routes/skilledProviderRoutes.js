@@ -11,17 +11,17 @@ router.post('/create', uploadMiddleware, skillProviderController.createSkillProv
 // router.post('/createWithCoordinate', skillProviderController.createSkillProviderWithGoogle);
 
 // Route to get all skill providers
-router.get('/skillproviders', skillProviderController.getAllSkillProviders);
+router.get('/skillproviders',  skillProviderController.getAllSkillProviders);
 
 // Route to get a skill provider by ID
 router.get('/view/:id', skillProviderController.getSkillProviderById);
 
 // Route to update a skill provider by ID
 // router.put('/update/:id', skillProviderController.updateSkillProvider);
-router.put('/updateSkillProvider/:id', uploadMiddleware, skillProviderController.updateSkillProviderProfileWithImage);
+router.put('/updateSkillProvider/:id', userToken, uploadMiddleware, skillProviderController.updateSkillProviderProfileWithImage);
 
 // Route to delete a skill provider by ID
-router.delete('/delete/:id', skillProviderController.deleteSkillProvider);
+router.delete('/delete/:id', userToken, skillProviderController.deleteSkillProvider);
 // router.delete('/find-skillProvider/:id', skillProviderController.findNearestSkillProviders);
 
 module.exports = router;

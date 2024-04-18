@@ -41,6 +41,7 @@ async function createVerifySkillProvidersTable() {
             cacImagePath VARCHAR(255),
             providerId INT,
             followers INT,
+            isVerified BOOLEAN DEFAULT FALSE,
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (providerId) REFERENCES skill_providers(id) ON DELETE CASCADE
@@ -196,6 +197,72 @@ verifySkillProviderService.updateSkillProviderDetails = async (id, skillProvider
         throw error;
     }
 };
+
+
+// verifySkillProviderService.checkVerificationStatus = async (id) => {
+//     try {
+//         // Retrieve detailed information about the verified skill provider
+//         const skillProviderDetails = await verifySkillProviderService.getVerifySkillProviderDetailsById(id);
+        
+//         // Check if any field is null or empty
+//         const isAnyFieldEmpty = Object.values(skillProviderDetails).some(value => value === null || value === '');
+
+//         // Update the verification status based on the check
+//         const isVerified = !isAnyFieldEmpty;
+
+//         // Update the isVerified status in the verify_skill_providers table
+//         const updateQuery = `
+//             UPDATE verify_skill_providers 
+//             SET isVerified=?
+//             WHERE providerId=?
+//         `;
+//         await query(updateQuery, [isVerified, id]);
+
+//         return isVerified;
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
+
+verifySkillProviderService.checkVerificationStatus = async (id) => {
+    try {
+        // Retrieve detailed information about the verified skill provider
+        const skillProviderDetails = await verifySkillProviderService.getVerifySkillProviderDetailsById(id);
+        
+        // Check if any field is null or empty
+        const emptyFields = [];
+        const isAnyFieldEmpty = Object.entries(skillProviderDetails).some(([key, value]) => {
+            if (value === null || value === '') {
+                emptyFields.push(key);
+                return true;
+            }
+            return false;
+        });
+
+        // Update the verification status based on the check
+        const isVerified = !isAnyFieldEmpty;
+
+        // Update the isVerified status in the verify_skill_providers table
+        const updateQuery = `
+            UPDATE verify_skill_providers 
+            SET isVerified=?
+            WHERE providerId=?
+        `;
+        await query(updateQuery, [isVerified, id]);
+
+        // Return the appropriate message based on the isVerified status
+        if (isVerified) {
+            return { isVerified: true, message: 'The provider is verified and all documents submitted.' };
+        } else {
+            return { isVerified: false, message: `The status is not verified because of the following missing credentials: ${emptyFields.join(', ')}` };
+        }
+    } catch (error) {
+        throw error;
+    }
+};
+
 
 
 
