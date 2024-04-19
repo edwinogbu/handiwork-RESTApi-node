@@ -140,16 +140,39 @@ const skillProviderService = {};
 
 
 
+// skillProviderService.emailExists = async (email) => {
+//     try {
+//         const selectQuery = 'SELECT COUNT(*) AS count FROM users WHERE email = ?';
+//         const result = await query(selectQuery, [email]);
+//         const count = result[0].count;
+//         return count > 0;
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
 skillProviderService.emailExists = async (email) => {
     try {
-        const selectQuery = 'SELECT COUNT(*) AS count FROM users WHERE email = ?';
-        const result = await query(selectQuery, [email]);
+        let selectQuery;
+        let queryParams;
+        
+        if (email === null) {
+            selectQuery = 'SELECT COUNT(*) AS count FROM skill_providers WHERE email IS NULL';
+            queryParams = [];
+        } else {
+            selectQuery = 'SELECT COUNT(*) AS count FROM skill_providers WHERE email = ?';
+            queryParams = [email];
+        }
+
+        const result = await query(selectQuery, queryParams);
         const count = result[0].count;
         return count > 0;
     } catch (error) {
         throw error;
     }
 };
+
 
 skillProviderService.phoneExists = async (phone) => {
     try {
@@ -211,16 +234,20 @@ skillProviderService.createSkillProvider = async (skillProviderData) => {
         const { firstName, lastName, email, password, phone, secondPhone, stateOfResidence, city, street, serviceType, subCategory, openingHour, referralCode, imagePath } = skillProviderData;
 
         // Check if email or phone already exists
-        const emailExists = await skillProviderService.emailExists(email);
-        if (emailExists) {
-            throw new Error('Email already exists');
-        }
+       // Check if email is null
+    //    if (!email) {
+    //         throw new Error('Email was not assigned');
+    //     }
 
         const phoneExists = await skillProviderService.phoneExists(phone);
         if (phoneExists) {
             throw new Error('Phone number already exists');
         }
 
+        const emailExists = await skillProviderService.emailExists(email);
+        if (emailExists) {
+            throw new Error('Email already exists');
+        }
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 12);
 

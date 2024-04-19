@@ -288,6 +288,7 @@ const generateOTP = () => {
 
 const authenticationService = {};
 
+
 // Authenticate user with email/phone and password
 authenticationService.authenticateUser = async (loginData) => {
     try {
@@ -330,6 +331,8 @@ authenticationService.authenticateUser = async (loginData) => {
         throw error;
     }
 };
+
+
 
 // Register a new user
 authenticationService.registerUser = async (userData) => {
