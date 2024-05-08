@@ -1,5 +1,3 @@
-
-
 const mysql = require('mysql');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -50,6 +48,7 @@ const createCustomersTableQuery = `
         password VARCHAR(255) NOT NULL,
         phone VARCHAR(20),
         address VARCHAR(255) NOT NULL,
+        imagePath VARCHAR(255),
         userId INT,
         FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -57,8 +56,6 @@ const createCustomersTableQuery = `
     )
 `;
 
-
-// Create Users table if it doesn't exist
 // Create Users table if it doesn't exist
 const createUsersTableQuery = `
     CREATE TABLE IF NOT EXISTS users (
@@ -76,6 +73,7 @@ const createUsersTableQuery = `
         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
 `;
+
 const createOtpsTableQuery = `
     CREATE TABLE IF NOT EXISTS otps (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -86,17 +84,34 @@ const createOtpsTableQuery = `
     )
 `;
 
-
-// Execute table creation queries
-(async () => {
+// Function to create Users table
+async function createUsersTable() {
     try {
         await query(createUsersTableQuery);
-        await query(createCustomersTableQuery);
-        await query(createOtpsTableQuery);
-        console.log('Tables created successfully');
+        console.log('Users table created successfully');
     } catch (error) {
-        console.error('Error creating tables:', error);
+        console.error('Error creating Users table:', error);
     }
+}
+
+// Function to alter Users table
+async function alterUsersTable() {
+    try {
+        const alterTableQuery = `ALTER TABLE users ADD COLUMN defaultEmail VARCHAR(255)`;
+        await query(alterTableQuery); // Add the defaultEmail column to the users table
+        console.log('Users table altered successfully');
+    } catch (error) {
+        console.error('Error altering Users table:', error);
+    }
+}
+
+// Execute table creation and alteration queries
+(async () => {
+    await createUsersTable();
+    await alterUsersTable();
+    await query(createCustomersTableQuery);
+    await query(createOtpsTableQuery);
+    console.log('Tables created successfully');
 })();
 
 // Function to sign JWT token
@@ -106,8 +121,121 @@ const signToken = (id) => {
     });
 };
 
-// CRUD operations for Customers
+// CRUD operations for Default Email
 const customerService = {};
+
+
+// const mysql = require('mysql');
+// const bcrypt = require('bcrypt');
+// const jwt = require('jsonwebtoken');
+// const dotenv = require('dotenv');
+
+// dotenv.config();
+
+// // Create a pool of MySQL connections
+// const pool = mysql.createPool({
+//     connectionLimit: process.env.CONNECTION_LIMIT,
+//     host: process.env.DB_HOST,
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASSWORD,
+//     database: process.env.DB_NAME,
+// });
+
+// // Helper function to execute SQL queries
+// function query(sql, args) {
+//     return new Promise((resolve, reject) => {
+//         // Get a connection from the pool
+//         pool.getConnection((err, connection) => {
+//             if (err) {
+//                 return reject(err);
+//             }
+
+//             // Execute the query using the acquired connection
+//             connection.query(sql, args, (err, rows) => {
+//                 // Release the connection back to the pool
+//                 connection.release();
+
+//                 if (err) {
+//                     return reject(err);
+//                 }
+
+//                 resolve(rows);
+//             });
+//         });
+//     });
+// }
+
+// // Create Customers table if it doesn't exist
+// const createCustomersTableQuery = `
+//     CREATE TABLE IF NOT EXISTS customers (
+//         id INT AUTO_INCREMENT PRIMARY KEY,
+//         firstName VARCHAR(255) NOT NULL,
+//         lastName VARCHAR(255) NOT NULL,
+//         email VARCHAR(255),
+//         password VARCHAR(255) NOT NULL,
+//         phone VARCHAR(20),
+//         address VARCHAR(255) NOT NULL,
+//         imagePath VARCHAR(255),
+//         userId INT,
+//         FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+//         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+//     )
+// `;
+
+
+// // Create Users table if it doesn't exist
+// // Create Users table if it doesn't exist
+// const createUsersTableQuery = `
+//     CREATE TABLE IF NOT EXISTS users (
+//         id INT AUTO_INCREMENT PRIMARY KEY,
+//         firstName VARCHAR(255) NOT NULL,
+//         lastName VARCHAR(255) NOT NULL,
+//         email VARCHAR(255),
+//         phone VARCHAR(255) NOT NULL,
+//         password VARCHAR(255) NOT NULL,
+//         defaultEmail VARCHAR(255),
+//         role ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+//         userType ENUM('Customer', 'SkillProvider') NOT NULL,
+//         customerId INT,
+//         providerId INT,
+//         createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//         updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+//     )
+// `;
+// const createOtpsTableQuery = `
+//     CREATE TABLE IF NOT EXISTS otps (
+//         id INT AUTO_INCREMENT PRIMARY KEY,
+//         user_id INT NOT NULL,
+//         otp VARCHAR(6) NOT NULL,
+//         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//         FOREIGN KEY (user_id) REFERENCES users(id)
+//     )
+// `;
+
+
+// // Execute table creation queries
+// (async () => {
+//     try {
+//         await query(createUsersTableQuery);
+//         await query(createCustomersTableQuery);
+//         await query(createOtpsTableQuery);
+//         console.log('Tables created successfully');
+//     } catch (error) {
+//         console.error('Error creating tables:', error);
+//     }
+// })();
+
+// // Function to sign JWT token
+// const signToken = (id) => {
+//     return jwt.sign({ id }, process.env.JWT_SECRET, {
+//         expiresIn: process.env.JWT_EXPIRES_IN,
+//     });
+// };
+
+// // CRUD operations for Customers
+// const customerService = {};
+
 
 // customerService.createCustomer = async (customerData) => {
 //     try {
@@ -272,46 +400,228 @@ customerService.createCustomer = async (customerData) => {
     }
 };
 
-
-customerService.updateCustomer = async (customerId, customerData) => {
+// Function to check if a user exists
+customerService.userExists = async (customerId) => {
     try {
-        // Retrieve current customer data from the database
-        const currentCustomer = await customerService.getCustomerById(customerId);
-        if (!currentCustomer) {
-            throw new Error('Customer not found');
-        }
-
-        // Check for changes in customer data
-        const updatedCustomerData = { ...currentCustomer, ...customerData };
-        const hasChanges = Object.keys(updatedCustomerData).some(key => updatedCustomerData[key] !== currentCustomer[key]);
-
-        if (!hasChanges) {
-            // No changes made, return current customer data
-            return currentCustomer;
-        }
-
-        // Prepare update query based on changed fields
-        const updateFields = Object.entries(customerData).filter(([key, value]) => value !== currentCustomer[key]);
-        const updateValues = updateFields.map(([key, value]) => `${key}=?`).join(', ');
-        const updateParams = updateFields.map(([key, value]) => value);
-
-        // Add customerId to updateParams
-        updateParams.push(customerId);
-
-        // Update customer data in the database
-        const updateQuery = `
-            UPDATE customers 
-            SET ${updateValues}
-            WHERE id=?
-        `;
-        await query(updateQuery, updateParams);
-
-        // Return updated customer data
-        return { ...currentCustomer, ...customerData };
+        const selectQuery = 'SELECT COUNT(*) AS count FROM users WHERE customerId = ?';
+        const result = await query(selectQuery, [customerId]);
+        const count = result[0].count;
+        return count > 0;
     } catch (error) {
         throw error;
     }
 };
+
+// Function to check if a customer exists
+customerService.customerExists = async (customerId) => {
+    try {
+        const selectQuery = 'SELECT COUNT(*) AS count FROM customers WHERE id = ?';
+        const result = await query(selectQuery, [customerId]);
+        const count = result[0].count;
+        return count > 0;
+    } catch (error) {
+        throw error;
+    }
+};
+
+customerService.patchedUpdateCustomer = async (customerId, updateCustomerFields) => {
+    try {
+        const customerExists = await customerService.customerExists(customerId);
+        if (!customerExists) {
+            throw new Error('This customer Does not Exist');
+        }
+        
+        const emailExists = await customerService.emailExists(email);
+        if (emailExists) {
+            throw new Error('Email Already Exist');
+        }
+
+        const phoneExists = await customerService.phoneExists(phone);
+        if (phoneExists) {
+            throw new Error('Phone Number Already Exist');
+        }
+
+        const {firstName, lastName, email, phone, address} = updateCustomerFields;
+
+        const updateCustomerFieldsQuery = `
+        UPDATE customers SET firstName = ?, lastName = ?,
+        email = ?, phone =?, address = ? WHERE id =?
+        `
+        await query(updateCustomerFieldsQuery[firstName, lastName, email, phone, address, customerId]);
+
+        const updateUserQuery = `
+         UPDATE users SET firstName = ?, lastName =?, email =?, phone = ?,
+         WHERE customerId =?
+        `;
+        await query(firstName, lastName, email, phone,customerId)
+
+
+        return {id:customerId, ...updateCustomerFields};
+    } catch (error) {
+        throw error;
+    }
+}
+// Function to update customer information
+customerService.updateCustomer = async (customerId, updatedCustomerData) => {
+    try {
+        // Check if the customer exists
+        const customerExists = await customerService.customerExists(customerId);
+        if (!customerExists) {
+            throw new Error('Customer not found');
+        }
+
+        const { firstName, lastName, email, phone, address } = updatedCustomerData;
+
+        // Update customer data in the customers table
+        const updateCustomerQuery = `
+            UPDATE customers
+            SET firstName = ?, lastName = ?, email = ?, phone = ?, address = ?
+            WHERE id = ?
+        `;
+        await query(updateCustomerQuery, [firstName, lastName, email, phone, address, customerId]);
+          
+       
+        // Check if the user exists
+        const userExists = await customerService.userExists(customerId);
+        if (!userExists) {
+            throw new Error('User not found');
+        }
+
+        // Update user data in the users table
+        const updateUserQuery = `
+            UPDATE users
+            SET firstName = ?, lastName = ?, email = ?, phone = ?
+            WHERE customerId = ?
+        `;
+        await query(updateUserQuery, [firstName, lastName, email, phone, customerId]);
+
+        // Return the updated customer data
+        return { id: customerId, ...updatedCustomerData };
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+
+// customerService.updateCustomer = async (customerId, updatedCustomerData) => {
+//     try {
+//         const { firstName, lastName, email, phone, address } = updatedCustomerData;
+
+//         // Check if customer exists
+//         const customerExistsQuery = `
+//             SELECT id FROM customers WHERE id = ?
+//         `;
+//         const customerExistsResult = await query(customerExistsQuery, [customerId]);
+
+//         if (customerExistsResult.length === 0) {
+//             throw new Error('Customer not found');
+//         }
+
+//         // Check if user exists and retrieve user ID
+//         const userExistsQuery = `
+//             SELECT id FROM users WHERE customerId = ?
+//         `;
+//         const userExistsResult = await query(userExistsQuery, [customerId]);
+
+//         if (userExistsResult.length === 0) {
+//             throw new Error('User not found');
+//         }
+
+//         const userId = userExistsResult[0].id;
+
+//         // Update customer data in the customers table
+//         const updateCustomerQuery = `
+//             UPDATE customers
+//             SET firstName = ?, lastName = ?, email = ?, phone = ?, address = ?
+//             WHERE id = ?
+//         `;
+//         await query(updateCustomerQuery, [firstName, lastName, email, phone, address, customerId]);
+
+//         // Update user data in the users table
+//         const updateUserQuery = `
+//             UPDATE users
+//             SET firstName = ?, lastName = ?, email = ?, phone = ?
+//             WHERE id = ?
+//         `;
+//         await query(updateUserQuery, [firstName, lastName, email, phone, userId]);
+
+//         // Return the updated customer data
+//         return { id: customerId, ...updatedCustomerData };
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
+// customerService.updateCustomer = async (customerId, updatedCustomerData) => {
+//     try {
+//         const { firstName, lastName, email, phone, address } = updatedCustomerData;
+
+  
+//         // Update customer data in the customers table
+//         const updateCustomerQuery = `
+//             UPDATE customers
+//             SET firstName = ?, lastName = ?, email = ?, phone = ?, address = ?
+//             WHERE id = ?
+//         `;
+//         await query(updateCustomerQuery, [firstName, lastName, email, phone, address, customerId]);
+
+//         // Update user data in the users table
+//         const updateUserQuery = `
+//             UPDATE users
+//             SET firstName = ?, lastName = ?, email = ?, phone = ?
+//             WHERE customerId = ?
+//         `;
+//         await query(updateUserQuery, [firstName, lastName, email, phone, customerId]);
+
+//         // Return the updated customer data
+//         return { id: customerId, ...updatedCustomerData };
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
+// customerService.updateCustomer = async (customerId, customerData) => {
+//     try {
+//         // Retrieve current customer data from the database
+//         const currentCustomer = await customerService.getCustomerById(customerId);
+//         if (!currentCustomer) {
+//             throw new Error('Customer not found');
+//         }
+
+//         // Check for changes in customer data
+//         const updatedCustomerData = { ...currentCustomer, ...customerData };
+//         const hasChanges = Object.keys(updatedCustomerData).some(key => updatedCustomerData[key] !== currentCustomer[key]);
+
+//         if (!hasChanges) {
+//             // No changes made, return current customer data
+//             return currentCustomer;
+//         }
+
+//         // Prepare update query based on changed fields
+//         const updateFields = Object.entries(customerData).filter(([key, value]) => value !== currentCustomer[key]);
+//         const updateValues = updateFields.map(([key, value]) => `${key}=?`).join(', ');
+//         const updateParams = updateFields.map(([key, value]) => value);
+
+//         // Add customerId to updateParams
+//         updateParams.push(customerId);
+
+//         // Update customer data in the database
+//         const updateQuery = `
+//             UPDATE customers 
+//             SET ${updateValues}
+//             WHERE id=?
+//         `;
+//         await query(updateQuery, updateParams);
+
+//         // Return updated customer data
+//         return { ...currentCustomer, ...customerData };
+//     } catch (error) {
+//         throw error;
+//     }
+// };
 
 
 customerService.getCustomerById = async (id) => {
@@ -404,6 +714,42 @@ customerService.deleteCustomer = async (id) => {
         throw error;
     }
 };
+
+const fs = require('fs');
+const { promisify } = require('util');
+
+const unlinkSync = promisify(fs.unlink);
+
+// Function to update only the image of a customer
+customerService.updateCustomerOnlyImage = async (customerId, imagePath) => {
+    try {
+
+        const currentCustomer = await customerService.getCustomerById(customerId);
+        if (!currentCustomer) {
+            throw new Error('Customer not found');
+        }
+
+        // Check if there's an existing image for the skill provider
+        if (currentCustomer.imagePath) {
+            // Remove the existing image file from the server
+            fs.unlinkSync(currentCustomer.imagePath);
+        }
+
+        // Update the skill provider's image path in the database
+        const updateQuery = `
+            UPDATE customers 
+            SET imagePath=?
+            WHERE id=?
+        `;
+        await query(updateQuery, [imagePath, customerId]);
+
+        // Return the updated skill provider data
+        return { ...currentCustomer, imagePath };
+    } catch (error) {
+        throw error;
+    }
+};
+
 
 module.exports = customerService;
 

@@ -1,6 +1,44 @@
 
 
-const { query } = require('./db');
+const mysql = require('mysql');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+// Create a pool of MySQL connections
+const pool = mysql.createPool({
+    connectionLimit: process.env.CONNECTION_LIMIT,
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+});
+
+// Helper function to execute SQL queries
+function query(sql, args) {
+    return new Promise((resolve, reject) => {
+        // Get a connection from the pool
+        pool.getConnection((err, connection) => {
+            if (err) {
+                return reject(err);
+            }
+
+            // Execute the query using the acquired connection
+            connection.query(sql, args, (err, rows) => {
+                // Release the connection back to the pool
+                connection.release();
+
+                if (err) {
+                    return reject(err);
+                }
+
+                resolve(rows);
+            });
+        });
+    });
+}
 
 // Function to create conversations table if not exists
 const createConversationsTableQuery = `

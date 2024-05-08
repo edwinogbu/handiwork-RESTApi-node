@@ -182,6 +182,52 @@ const checkVerificationStatus = async (req, res, next) => {
 
 
 
+
+// Controller function to update the CAC image path
+const updateCACImage = async (req, res) => {
+    const { id } = req.params;
+    const { cacImageFilePath } = req.body;
+    try {
+        const result = await verifySkillProviderService.updateCACImage(id, cacImageFilePath);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Controller function to view all CAC images
+const viewAllCAC = async (req, res) => {
+    try {
+        const result = await verifySkillProviderService.viewAllCAC();
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Controller function to delete a CAC image
+const deleteCAC = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await verifySkillProviderService.deleteCAC(id);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Controller function to create a new entry in verify_skill_providers table with CAC image file
+const createSkillProviderCAC = async (req, res) => {
+    const { cacImageFile } = req.body;
+    try {
+        const result = await verifySkillProviderService.createSkillProviderCAC(cacImageFile);
+        res.json(result);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
 module.exports = {
     createVerifySkillProvider,
     getVerifySkillProviderById,
@@ -191,5 +237,9 @@ module.exports = {
     getVerifySkillProviderDetailsById,
     updateSkillProviderDetails,
     // addSocialMedia,
-    checkVerificationStatus
+    checkVerificationStatus,
+    updateCACImage,
+viewAllCAC,
+deleteCAC,
+createSkillProviderCAC,
 };

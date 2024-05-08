@@ -137,15 +137,45 @@ async function deleteCustomer(req, res) {
     }
 }
 
+
 async function updateCustomer(req, res) {
     try {
         const customerId = req.params.id;
-        const { fullName, email, password, phone, address  } = req.body;
-        
+        const { firstName, lastName, email, phone, address } = req.body;
+
+        // Check if the customer exists
+        const customerExists = await customerService.customerExists(customerId);
+        if (!customerExists) {
+            return res.status(404).json({ success: false, error: 'Customer not found' });
+        }
+
         // Update customer information
-        const updatedCustomer = await customerService.updateCustomer(customerId, { fullName, email, password, phone, address  });
+        const updatedCustomer = await customerService.updateCustomer(customerId, { firstName, lastName, email, phone, address });
+
+        // Return the updated customer data
+        res.status(200).json({ success: true, customer: updatedCustomer });
+    } catch (error) {
+        // Return error response if any error occurs during the process
+        res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+
+async function updateCustomerOnlyImage(req, res) {
+    try {
+        const customerId = req.params.id;
+        const imagePath = req.file ? req.file.path : null;
+
+        // Check if a file is uploaded
+        if (!req.file) {
+            return res.status(400).json({ success: false, error: 'No image uploaded' });
+        }
+
+        // Call the service layer function to update only the image of the skill provider
+        const updatedCustomer = await customerService.updateCustomerOnlyImage(customerId, imagePath);
 
         res.status(200).json({ success: true, customer: updatedCustomer });
+
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -158,7 +188,8 @@ module.exports = {
     getAllCustomers,
     updateCustomerWithImage,
     deleteCustomer,
-    updateCustomer
+    updateCustomer,
+    updateCustomerOnlyImage
 };
 
 

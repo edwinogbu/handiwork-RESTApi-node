@@ -264,6 +264,146 @@ verifySkillProviderService.checkVerificationStatus = async (id) => {
 };
 
 
+verifySkillProviderService.updateCACImage = async (id, cacImageFilePath) => {
+    try {
+        // Update the CAC image path for the specified provider ID
+        const updateQuery = `
+            UPDATE verify_skill_providers 
+            SET cacImagePath=?
+            WHERE providerId=?
+        `;
+        await query(updateQuery, [cacImageFilePath, id]);
+
+        // Return a success message
+        return { success: true, message: 'CAC image uploaded successfully.' };
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+const fs = require('fs');
+
+verifySkillProviderService.uploadCACImage = async (id, cacImageFilePath) => {
+    try {
+        // Read the CAC image file
+        const cacImageFile = fs.readFileSync(cacImageFilePath);
+
+        // Define the destination path to save the CAC image file
+        const destinationPath = `uploads/${id}-cac-image.jpg`; // You can adjust the file name and extension as needed
+
+        // Write the CAC image file to the destination path
+        fs.writeFileSync(destinationPath, cacImageFile);
+
+        // Insert a new record for the CAC image path into the database
+        const insertQuery = `
+            INSERT INTO verify_skill_providers (cacImagePath, providerId)
+            VALUES (?, ?)
+        `;
+        await query(insertQuery, [destinationPath, id]);
+
+        // Return a success message with the file path
+        return { success: true, message: 'CAC image uploaded successfully.', imagePath: destinationPath };
+    } catch (error) {
+        throw error;
+    }
+};
+
+verifySkillProviderService.uploadCACImage = async (id, cacImageFilePath) => {
+    try {
+        // Save the uploaded file path to the database
+        const updateQuery = `
+            UPDATE verify_skill_providers 
+            SET cacImagePath=?
+            WHERE providerId=?
+        `;
+        await query(updateQuery, [cacImageFilePath, id]);
+
+        // Return a success message
+        return { success: true, message: 'CAC image uploaded successfully.' };
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+verifySkillProviderService.viewCACById = async (id) => {
+    try {
+        const selectQuery = `
+            SELECT cacImagePath
+            FROM verify_skill_providers 
+            WHERE providerId=?
+        `;
+        const result = await query(selectQuery, [id]);
+        return result[0];
+    } catch (error) {
+        throw error;
+    }
+};
+
+verifySkillProviderService.updateCACImage = async (id, cacImageFilePath) => {
+    try {
+        // Update the CAC image path for the specified provider ID
+        const updateQuery = `
+            UPDATE verify_skill_providers 
+            SET cacImagePath=?
+            WHERE providerId=?
+        `;
+        await query(updateQuery, [cacImageFilePath, id]);
+
+        // Return a success message
+        return { success: true, message: 'CAC image updated successfully.' };
+    } catch (error) {
+        throw error;
+    }
+};
+
+verifySkillProviderService.viewAllCAC = async () => {
+    try {
+        const selectQuery = `
+            SELECT providerId, cacImagePath
+            FROM verify_skill_providers
+        `;
+        const result = await query(selectQuery);
+        return result;
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+verifySkillProviderService.deleteCAC = async (id) => {
+    try {
+        const deleteQuery = `
+            UPDATE verify_skill_providers 
+            SET cacImagePath = NULL
+            WHERE providerId=?
+        `;
+        await query(deleteQuery, [id]);
+        return { success: true, message: 'CAC image deleted successfully.' };
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Function to create a new entry in verify_skill_providers table with CAC image file
+verifySkillProviderService.createSkillProviderCAC = async (cacImageFile) => {
+    try {
+        // Upload the CAC image and get the file path
+        const { filePath } = await verifySkillProviderService.uploadCACImage(cacImageFile);
+
+        // Insert verifySkillProvider data with CAC image path into the verify_skill_providers table
+        const insertQuery = `
+            INSERT INTO verify_skill_providers (cacImagePath)
+            VALUES (?)
+        `;
+        const result = await query(insertQuery, [filePath]);
+
+        return { id: result.insertId, cacImagePath: filePath };
+    } catch (error) {
+        throw error;
+    }
+};
 
 
 module.exports = verifySkillProviderService;

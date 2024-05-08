@@ -48,8 +48,18 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const cache = require('memory-cache');
 
-// Route to authenticate user
+// Route to authenticate user general purpose
 router.post('/login', authController.authenticateUser);
+// Route to authenticate customer user
+router.post('/login/customer', authController.authenticateCustomer);
+// Route to authenticate skill provider user
+router.post('/login/skill-provider', authController.authenticateSkillProvider);
+
+// This is to handle any issue where the users register without email and need a password reset
+router.put('/create-defaultEmail/:id', authController.createDefaultEmail);
+router.get('/read-defaultEmail', authController.readDefaultEmail);
+router.put('/update-defaultEmail/:id', authController.updateDefaultEmail);
+
 
 // Route to register new user
 router.post('/register', authController.registerUser);

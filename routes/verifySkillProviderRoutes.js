@@ -64,10 +64,23 @@ router.delete('/delete/:id',userToken, verifySkillProviderController.deleteVerif
 // Route to get skill provider details by ID
 router.get('/verify-skill-details/:id', verifySkillProviderController.getVerifySkillProviderDetailsById);
 // Route to update skill provider details
-router.put('/updateSkillAndVerify/:id', verifySkillProviderController.updateSkillProviderDetails);
+router.put('/updateSkillAndVerify/:id',  uploadMiddleware, verifySkillProviderController.updateSkillProviderDetails);
 // router.put('/updateSocials/:id', verifySkillProviderController.addSocialMedia);
 
-router.get('/verify/:id', verifySkillProviderController.checkVerificationStatus);
+router.get('/verify/:id', uploadMiddleware, verifySkillProviderController.checkVerificationStatus);
+
+
+// Route to update the CAC image path
+router.put('/updateCacImage/:id', uploadMiddleware, verifySkillProviderController.updateCACImage);
+
+// Route to view all CAC images
+router.get('/viewCacImage/cac', verifySkillProviderController.viewAllCAC);
+
+// Route to delete a CAC image
+router.delete('/deleteCacImage/:id', verifySkillProviderController.deleteCAC);
+
+// Route to create a new entry in verify_skill_providers table with CAC image file
+router.post('/createCacImage',  uploadMiddleware, verifySkillProviderController.createSkillProviderCAC);
 
 
 module.exports = router;

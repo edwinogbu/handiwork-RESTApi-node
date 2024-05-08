@@ -38,6 +38,31 @@ async function authenticateUser(req, res) {
     }
 }
 
+async function authenticateCustomer(req, res) {
+    try {
+        const { emailOrPhone, password } = req.body;
+        const sanitizedEmailOrPhone = sanitizeInput(emailOrPhone);
+        const sanitizedPassword = sanitizeInput(password);
+        const result = await authenticationService.authenticateCustomer({ emailOrPhone: sanitizedEmailOrPhone, password: sanitizedPassword });
+        res.status(200).json({ success: true, user: result.user, token: result.token });
+    } catch (error) {
+        res.status(401).json({ success: false, error: error.message });
+    }
+}
+
+
+async function authenticateSkillProvider(req, res) {
+    try {
+        const { emailOrPhone, password } = req.body;
+        const sanitizedEmailOrPhone = sanitizeInput(emailOrPhone);
+        const sanitizedPassword = sanitizeInput(password);
+        const result = await authenticationService.authenticateSkillProvider({ emailOrPhone: sanitizedEmailOrPhone, password: sanitizedPassword });
+        res.status(200).json({ success: true, user: result.user, token: result.token });
+    } catch (error) {
+        res.status(401).json({ success: false, error: error.message });
+    }
+}
+
 async function registerUser(req, res) {
     try {
         const userData = req.body;
@@ -102,6 +127,39 @@ async function getAllUsers(req, res) {
     }
 }
 
+// Create Default Email
+async function createDefaultEmail(req, res, next){
+    try {
+        const { defaultEmail, userId } = req.body;
+        await authenticationService.updateDefaultEmail({defaultEmail, userId}); // Update the default email parameter in the users table
+        res.status(201).json({ message: 'Default email created successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Read Default Email
+async function readDefaultEmail(req, res, next){
+    try {
+        const defaultEmail = await authenticationService.readDefaultEmail(); // Read the default email parameter from the users table
+        res.status(200).json({ defaultEmail });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Update Default Email
+async function updateDefaultEmail(req, res, next){
+    try {
+        const { defaultEmail, userId } = req.body;
+        await authenticationService.updateDefaultEmail({defaultEmail, userId}); // Update the default email parameter in the users table
+        res.status(200).json({ message: 'Default email updated successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+
 module.exports = {
     authenticateUser,
     registerUser,
@@ -109,6 +167,11 @@ module.exports = {
     resetPassword,
     verifyOTP,
     getAllUsers,
+    authenticateCustomer,
+    authenticateSkillProvider,
+    createDefaultEmail,
+    readDefaultEmail,
+    updateDefaultEmail
 };
 
 

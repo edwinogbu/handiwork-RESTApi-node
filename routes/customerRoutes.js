@@ -9,12 +9,16 @@ const router = express.Router();
 router.post('/create', uploadMiddleware, customerController.createCustomer);
 
 // router.post('/create', customerController.createCustomer);
-router.get('/view/:id', userToken, customerController.getCustomerById);
+router.get('/view/:id',  customerController.getCustomerById);
 router.get('/customers', customerController.getAllCustomers);
-router.put('/update/:id', userToken, uploadMiddleware, customerController.updateCustomer);
-router.put('/updateCustomerWithImage/:id', userToken, uploadMiddleware, customerController.updateCustomerWithImage);
+router.put('/update/:id',  uploadMiddleware, customerController.updateCustomer);
+router.put('/updateCustomerWithImage/:id',  uploadMiddleware, customerController.updateCustomerWithImage);
 // router.put('/update/:id', customerController.updateCustomer);
 router.delete('/delete/:id', userToken, customerController.deleteCustomer);
+
+// Route to update only the image of a skill provider
+router.put('/customer-image/:id', uploadMiddleware, customerController.updateCustomerOnlyImage);
+
 
 module.exports = router;
 

@@ -333,11 +333,166 @@ authenticationService.authenticateUser = async (loginData) => {
 };
 
 
+// Authenticate user with email/phone and password
+authenticationService.authenticateCustomer = async (loginData) => {
+    try {
+        // Ensure loginData is provided and contains emailOrPhone and password properties
+        if (!loginData || !loginData.emailOrPhone || !loginData.password) {
+            throw new Error('Both email/phone and password are required for authentication');
+        }
 
-// Register a new user
+        const emailOrPhone = loginData.emailOrPhone;
+        const password = loginData.password;
+
+        // Check if the login data is an email or phone number
+        const isEmail = emailOrPhone.includes('@');
+        const column = isEmail ? 'email' : 'phone';
+
+        // Fetch user data from the database based on email or phone
+        const selectQuery = `SELECT * FROM customers WHERE ${column} = ?`;
+        const user = await query(selectQuery, [emailOrPhone]);
+
+        // If user not found, return error
+        if (user.length === 0) {
+            throw new Error('User not found');
+        }
+
+        // Verify password
+        const hashedPassword = user[0].password;
+        const isPasswordValid = await bcrypt.compare(password, hashedPassword);
+
+        // If password is invalid, return error
+        if (!isPasswordValid) {
+            throw new Error('Invalid password');
+        }
+
+        // Generate JWT token
+        const token = signToken(user[0].id);
+
+        // Return user data along with token
+        return { user: user[0], token };
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+// Authenticate user with email/phone and password
+authenticationService.authenticateSkillProvider = async (loginData) => {
+    try {
+        // Ensure loginData is provided and contains emailOrPhone and password properties
+        if (!loginData || !loginData.emailOrPhone || !loginData.password) {
+            throw new Error('Both email/phone and password are required for authentication');
+        }
+
+        const emailOrPhone = loginData.emailOrPhone;
+        const password = loginData.password;
+
+        // Check if the login data is an email or phone number
+        const isEmail = emailOrPhone.includes('@');
+        const column = isEmail ? 'email' : 'phone';
+
+        // Fetch user data from the database based on email or phone
+        const selectQuery = `SELECT * FROM skill_providers WHERE ${column} = ?`;
+        const user = await query(selectQuery, [emailOrPhone]);
+
+        // If user not found, return error
+        if (user.length === 0) {
+            throw new Error('User not found');
+        }
+
+        // Verify password
+        const hashedPassword = user[0].password;
+        const isPasswordValid = await bcrypt.compare(password, hashedPassword);
+
+        // If password is invalid, return error
+        if (!isPasswordValid) {
+            throw new Error('Invalid password');
+        }
+
+        // Generate JWT token
+        const token = signToken(user[0].id);
+
+        // Return user data along with token
+        return { user: user[0], token };
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+// authenticationService.emailExists = async (email) => {
+//     try {
+//         const defaultEmail = 'admin@handiwork.com.ng';
+        
+//         if (email === defaultEmail) {
+//             // Default email address allowed without restrictions
+//             return false; // Assume it doesn't exist since it's the default
+//         } else {
+//             let selectQuery;
+//             let queryParams;
+            
+//             if (email === null) {
+//                 selectQuery = 'SELECT COUNT(*) AS count FROM users WHERE email IS NULL';
+//                 queryParams = [];
+//             } else {
+//                 selectQuery = 'SELECT COUNT(*) AS count FROM users WHERE email = ?';
+//                 queryParams = [email];
+//             }
+
+//             const result = await query(selectQuery, queryParams);
+//             const count = result[0].count;
+//             return count > 0;
+//         }
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
+
+authenticationService.emailExists = async (email) => {
+    try {
+        // Fetch the default email address from the database
+        const defaultEmailQuery = 'SELECT defaultEmail FROM default_emails LIMIT 1';
+        const defaultEmailResult = await query(defaultEmailQuery);
+        const defaultEmail = defaultEmailResult.length > 0 ? defaultEmailResult[0].defaultEmail : null;
+
+        if (email === defaultEmail) {
+            // Default email address allowed without restrictions
+            return false; // Assume it doesn't exist since it's the default
+        } else {
+            let selectQuery;
+            let queryParams;
+            
+            if (email === null) {
+                selectQuery = 'SELECT COUNT(*) AS count FROM users WHERE email IS NULL';
+                queryParams = [];
+            } else {
+                selectQuery = 'SELECT COUNT(*) AS count FROM users WHERE email = ?';
+                queryParams = [email];
+            }
+
+            const result = await query(selectQuery, queryParams);
+            const count = result[0].count;
+            return count > 0;
+        }
+    } catch (error) {
+        throw error;
+    }
+};
+
+
 authenticationService.registerUser = async (userData) => {
     try {
         const { firstName, lastName, email, phone, password, role, userType } = userData;
+
+        // Check if the email already exists
+        const emailAlreadyExists = await authenticationService.emailExists(email);
+
+        if (emailAlreadyExists) {
+            throw new Error('Email already exists');
+        }
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -360,6 +515,34 @@ authenticationService.registerUser = async (userData) => {
         throw error;
     }
 };
+
+
+// Register a new user
+// authenticationService.registerUser = async (userData) => {
+//     try {
+//         const { firstName, lastName, email, phone, password, role, userType } = userData;
+
+//         // Hash the password
+//         const hashedPassword = await bcrypt.hash(password, 12);
+
+//         // Insert user data into the database
+//         const insertQuery = 'INSERT INTO users (firstName, lastName, email, phone, password, role, userType) VALUES (?, ?, ?, ?, ?, ?, ?)';
+//         const result = await query(insertQuery, [firstName, lastName, email, phone, hashedPassword, role, userType]);
+
+//         // Check if user insertion was successful
+//         if (!result.insertId) {
+//             throw new Error('Failed to register user');
+//         }
+
+//         // Generate JWT token
+//         const token = signToken(result.insertId);
+
+//         // Return the newly registered user data along with the token
+//         return { id: result.insertId, token, ...userData };
+//     } catch (error) {
+//         throw error;
+//     }
+// };
 
 // Request password reset: Generate OTP and send it via email
 authenticationService.requestPasswordReset = async (emailOrPhone) => {
@@ -454,6 +637,71 @@ authenticationService.verifyOTP = async (userId, otp) => {
         throw error;
     }
 };
+
+authenticationService.getAllUsers = async () => {
+    try {
+        const selectAllUsersQuery = 'SELECT * FROM users';
+        const users = await query(selectAllUsersQuery);
+
+        // Check if users array is empty
+        if (users.length === 0) {
+            return { message: "Users table is empty" };
+        }
+
+        return users;
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+
+
+
+// Update Default Email
+authenticationService.updateDefaultEmail = async (defaultEmail, userId) => {
+    try {
+        const updateQuery = 'UPDATE users SET defaultEmail = ? WHERE id = ?';
+        await query(updateQuery, [defaultEmail, userId]);
+    } catch (error) {
+        throw error;
+    }
+};
+
+// Read Default Email
+// authenticationService.readDefaultEmail = async () => {
+//     try {
+//         const selectQuery = 'SELECT defaultEmail FROM users LIMIT 1';
+//         const result = await query(selectQuery);
+//         return result.length > 0 ? result[0].defaultEmail : null;
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
+// authenticationService.readDefaultEmail = async (userId) => {
+//     try {
+//         const selectQuery = 'SELECT defaultEmail FROM users WHERE id = ?';
+//         const result = await query(selectQuery, [userId]);
+//         return result.length > 0 ? result[0].defaultEmail : null;
+//     } catch (error) {
+//         throw error;
+//     }
+// };
+
+
+authenticationService.readDefaultEmail = async () => {
+    try {
+        const selectQuery = 'SELECT id, defaultEmail FROM users';
+        const result = await query(selectQuery);
+        return result.map(row => ({ userId: row.id, defaultEmail: row.defaultEmail }));
+    } catch (error) {
+        throw error;
+    }
+};
+
+
 
 
 module.exports = authenticationService;
